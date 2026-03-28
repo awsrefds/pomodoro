@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Focus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;200;300;400;500&family=Playfair+Display:ital,wght@0,300;0,400;1,300&family=Caveat:wght@400;500&family=DM+Serif+Display:ital@0;1&family=Cormorant+Garamond:wght@200;300&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --glass:rgba(255,255,255,0.08);
+  --glass-border:rgba(255,255,255,0.14);
+  --text:rgba(255,255,255,0.88);
+  --text-dim:rgba(255,255,255,0.45);
+  --text-faint:rgba(255,255,255,0.22);
+  --accent:rgba(255,255,255,0.95);
+  --ui-font:'Outfit',sans-serif;
+  --timer-font:'Outfit',sans-serif;
+  --timer-weight:200;
+}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0a0a}
+body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
+
+/* Custom cursor */
+#cursor{position:fixed;width:8px;height:8px;background:rgba(255,255,255,0.7);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:opacity 0.3s;mix-blend-mode:difference}
+#cursor.hidden{opacity:0}
+
+/* Background */
+#bg{position:fixed;inset:0;z-index:0;background-size:cover;background-position:center;background-repeat:no-repeat;transition:background-image 0.8s ease}
+#vignette{position:fixed;inset:0;z-index:1;background:radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.55) 100%),linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.4) 100%);pointer-events:none}
+#blur-overlay{position:fixed;inset:0;z-index:2;backdrop-filter:blur(0px);transition:backdrop-filter 0.4s;pointer-events:none}
+
+/* Timer */
+#timer-wrap{position:fixed;z-index:20;display:flex;flex-direction:column;align-items:center;gap:6px;transform:translate(-50%,-50%);cursor:grab;left:50%;top:50%}
+#timer-wrap:active{cursor:grabbing}
+#session-dots{display:flex;gap:7px;margin-bottom:4px;min-height:10px;transition:opacity 0.3s}
+.dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.25);transition:background 0.3s}
+.dot.done{background:rgba(255,255,255,0.8)}
+#timer-display{font-family:var(--timer-font);font-weight:var(--timer-weight);font-size:120px;letter-spacing:-2px;color:var(--accent);line-height:1;text-shadow:0 2px 40px rgba(0,0,0,0.3);white-space:nowrap;transition:font-family 0.4s,font-size 0.2s}
+#timer-label{font-family:var(--ui-font);font-weight:300;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:var(--text-dim);margin-top:2px}
+#timer-btns{display:flex;gap:12px;margin-top:16px;opacity:0;transition:opacity 0.3s}
+#timer-wrap:hover #timer-btns{opacity:1}
+.timer-btn{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.18);color:var(--text);font-family:var(--ui-font);font-size:11px;font-weight:400;letter-spacing:2.5px;text-transform:uppercase;padding:7px 20px;border-radius:30px;cursor:pointer;backdrop-filter:blur(12px);transition:background 0.2s,transform 0.1s}
+.timer-btn:hover{background:rgba(255,255,255,0.18)}
+.timer-btn:active{transform:scale(0.97)}
+.timer-btn.active-btn{background:rgba(255,255,255,0.22)}
+#timer-size-btns{display:flex;gap:8px;margin-top:10px;opacity:0;transition:opacity 0.3s}
+#timer-wrap:hover #timer-size-btns{opacity:1}
+.size-btn{background:none;border:1px solid rgba(255,255,255,0.2);color:var(--text-dim);width:22px;height:22px;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;line-height:1}
+.size-btn:hover{border-color:rgba(255,255,255,0.5);color:var(--text)}
+
+/* UI layer (auto-hides) */
+#ui-layer{position:fixed;inset:0;z-index:30;pointer-events:none;transition:opacity 0.5s ease}
+#ui-layer.hidden{opacity:0}
+#ui-layer.hidden *{pointer-events:none!important}
+#ui-layer > *{pointer-events:auto}
+
+/* Bottom bar */
+#bottom-bar{position:absolute;bottom:28px;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:0 32px;gap:16px}
+
+/* Music controls */
+#music-wrap{display:flex;flex-direction:column;gap:10px}
+#music-channels{display:flex;gap:6px}
+.music-btn{background:var(--glass);border:1px solid var(--glass-border);color:var(--text-dim);font-family:var(--ui-font);font-size:10px;font-weight:400;letter-spacing:1.5px;text-transform:uppercase;padding:6px 14px;border-radius:20px;cursor:pointer;backdrop-filter:blur(12px);transition:all 0.2s;white-space:nowrap}
+.music-btn:hover{color:var(--text);border-color:rgba(255,255,255,0.3)}
+.music-btn.playing{color:var(--accent);border-color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.14)}
+#volume-row{display:flex;align-items:center;gap:8px}
+#volume-icon{color:var(--text-faint);font-size:11px;cursor:pointer;transition:color 0.2s}
+#volume-icon:hover{color:var(--text-dim)}
+#vol-slider{-webkit-appearance:none;appearance:none;width:90px;height:2px;background:rgba(255,255,255,0.2);border-radius:2px;outline:none;cursor:pointer}
+#vol-slider::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.7);cursor:pointer;transition:transform 0.2s}
+#vol-slider::-webkit-slider-thumb:hover{transform:scale(1.3)}
+#audio-hint{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.55);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:18px 28px;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);z-index:100;pointer-events:none;opacity:0;transition:opacity 0.4s;text-align:center}
+#audio-hint.show{opacity:1}
+
+/* Mode selector */
+#mode-wrap{display:flex;gap:4px;background:var(--glass);border:1px solid var(--glass-border);border-radius:30px;padding:4px;backdrop-filter:blur(12px)}
+.mode-btn{background:none;border:none;color:var(--text-dim);font-family:var(--ui-font);font-size:10px;font-weight:400;letter-spacing:2px;text-transform:uppercase;padding:6px 16px;border-radius:24px;cursor:pointer;transition:all 0.2s}
+.mode-btn:hover{color:var(--text)}
+.mode-btn.active{background:rgba(255,255,255,0.14);color:var(--accent)}
+
+/* Right controls */
+#right-controls{display:flex;gap:10px;align-items:center}
+.icon-btn{background:var(--glass);border:1px solid var(--glass-border);color:var(--text-dim);width:36px;height:36px;border-radius:50%;cursor:pointer;backdrop-filter:blur(12px);transition:all 0.2s;display:flex;align-items:center;justify-content:center;font-size:14px;position:relative}
+.icon-btn:hover{color:var(--text);border-color:rgba(255,255,255,0.3);background:rgba(255,255,255,0.14)}
+.icon-btn.active{color:var(--accent);border-color:rgba(255,255,255,0.45);background:rgba(255,255,255,0.16)}
+
+/* Panels (notepad, todo, settings) */
+.panel{position:fixed;top:0;right:0;height:100%;width:320px;background:rgba(12,12,12,0.72);backdrop-filter:blur(24px);border-left:1px solid rgba(255,255,255,0.08);z-index:40;display:flex;flex-direction:column;transform:translateX(100%);transition:transform 0.4s cubic-bezier(0.16,1,0.3,1);padding:28px 24px}
+.panel.open{transform:translateX(0)}
+.panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
+.panel-title{font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--text-dim);font-weight:400}
+.panel-close{background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:16px;transition:color 0.2s;line-height:1}
+.panel-close:hover{color:var(--text)}
+
+/* Notepad */
+#notepad-area{flex:1;background:none;border:none;outline:none;color:var(--text);font-family:var(--ui-font);font-size:14px;font-weight:300;line-height:1.75;resize:none;width:100%}
+#notepad-area::placeholder{color:var(--text-faint)}
+#notepad-wordcount{font-size:10px;color:var(--text-faint);letter-spacing:1px;margin-top:12px;text-align:right}
+
+/* Todo */
+#todo-input-wrap{display:flex;gap:8px;margin-bottom:16px}
+#todo-input{flex:1;background:var(--glass);border:1px solid var(--glass-border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:var(--ui-font);font-size:13px;font-weight:300;outline:none}
+#todo-input::placeholder{color:var(--text-faint)}
+#todo-add-btn{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:var(--text);border-radius:8px;padding:8px 12px;cursor:pointer;font-size:13px;transition:background 0.2s}
+#todo-add-btn:hover{background:rgba(255,255,255,0.2)}
+#todo-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:6px}
+#todo-list::-webkit-scrollbar{width:2px}
+#todo-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:2px}
+.todo-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--glass);border:1px solid var(--glass-border);border-radius:8px;cursor:pointer;transition:all 0.2s}
+.todo-item:hover{background:rgba(255,255,255,0.1)}
+.todo-item.done{opacity:0.4}
+.todo-check{width:16px;height:16px;border:1px solid rgba(255,255,255,0.3);border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;transition:all 0.2s}
+.todo-item.done .todo-check{background:rgba(255,255,255,0.7);border-color:transparent;color:#000}
+.todo-text{flex:1;font-size:13px;font-weight:300;color:var(--text);transition:all 0.2s}
+.todo-item.done .todo-text{text-decoration:line-through;color:var(--text-dim)}
+.todo-del{background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:12px;opacity:0;transition:opacity 0.2s;line-height:1}
+.todo-item:hover .todo-del{opacity:1}
+.todo-del:hover{color:rgba(255,100,100,0.7)}
+#todo-clear-btn{margin-top:12px;background:none;border:1px solid rgba(255,255,255,0.1);color:var(--text-faint);font-family:var(--ui-font);font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:7px;border-radius:8px;cursor:pointer;transition:all 0.2s;width:100%}
+#todo-clear-btn:hover{border-color:rgba(255,255,255,0.25);color:var(--text-dim)}
+
+/* Settings */
+#settings-panel{width:340px}
+.setting-section{margin-bottom:24px}
+.setting-label{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--text-faint);margin-bottom:12px;display:block}
+.setting-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.setting-row label{font-size:13px;font-weight:300;color:var(--text-dim)}
+.setting-input{background:var(--glass);border:1px solid var(--glass-border);border-radius:6px;padding:5px 10px;color:var(--text);font-family:var(--ui-font);font-size:13px;width:70px;outline:none;text-align:center}
+.toggle-wrap{display:flex;align-items:center;gap:10px}
+.toggle{position:relative;width:36px;height:20px}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:rgba(255,255,255,0.12);border-radius:20px;cursor:pointer;transition:background 0.3s}
+.toggle-slider::before{content:'';position:absolute;width:14px;height:14px;left:3px;bottom:3px;background:rgba(255,255,255,0.5);border-radius:50%;transition:transform 0.3s}
+.toggle input:checked + .toggle-slider{background:rgba(255,255,255,0.35)}
+.toggle input:checked + .toggle-slider::before{transform:translateX(16px);background:white}
+.font-picker{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.font-opt{background:var(--glass);border:1px solid var(--glass-border);border-radius:8px;padding:10px;cursor:pointer;transition:all 0.2s;text-align:center}
+.font-opt:hover{background:rgba(255,255,255,0.1)}
+.font-opt.selected{border-color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.14)}
+.font-opt .font-preview{font-size:20px;display:block;margin-bottom:4px;color:var(--text)}
+.font-opt .font-name{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim)}
+.settings-action-btn{width:100%;background:none;border:1px solid rgba(255,255,255,0.1);color:var(--text-dim);font-family:var(--ui-font);font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:9px;border-radius:8px;cursor:pointer;transition:all 0.2s;margin-bottom:6px}
+.settings-action-btn:hover{border-color:rgba(255,255,255,0.3);color:var(--text)}
+
+/* Theme picker */
+#theme-bar{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:35;display:flex;gap:8px;background:rgba(0,0,0,0.5);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:10px 14px;opacity:0;pointer-events:none;transition:opacity 0.3s;max-width:90vw;overflow-x:auto}
+#theme-bar::-webkit-scrollbar{height:2px}
+#theme-bar::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.2);border-radius:2px}
+#theme-bar.show{opacity:1;pointer-events:auto}
+.theme-thumb{width:54px;height:40px;border-radius:8px;cursor:pointer;border:2px solid transparent;transition:all 0.2s;background-size:cover;background-position:center;flex-shrink:0;position:relative;overflow:hidden}
+.theme-thumb:hover{transform:scale(1.05);border-color:rgba(255,255,255,0.4)}
+.theme-thumb.active{border-color:white}
+.theme-thumb-label{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,0.7));font-size:6px;letter-spacing:0.5px;text-align:center;padding:3px 2px 2px;color:rgba(255,255,255,0.8)}
+
+/* Free timer sub-label */
+#free-sublabel{font-size:11px;color:var(--text-faint);letter-spacing:1px;margin-top:2px;min-height:16px;font-weight:300}
+
+/* Zen mode hint */
+#zen-hint{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.18);z-index:10;pointer-events:none;transition:opacity 0.5s}
+
+/* Notification bell */
+#notify-flash{position:fixed;top:24px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.55);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.12);border-radius:30px;padding:8px 22px;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);z-index:50;opacity:0;transition:opacity 0.5s;pointer-events:none}
+#notify-flash.show{opacity:1}
+
+/* Scrollbar global */
+*::-webkit-scrollbar{width:3px}
+*::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:3px}
+
+/* YouTube iframes hidden */
+#yt-container{position:fixed;top:-9999px;left:-9999px;opacity:0;pointer-events:none}
+#yt-container iframe{width:200px;height:113px}
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="bg"></div>
+<div id="vignette"></div>
+<div id="blur-overlay"></div>
+
+<!-- Notification -->
+<div id="notify-flash"></div>
+
+<!-- Audio hint -->
+<div id="audio-hint">Click a channel to enable audio</div>
+
+<!-- Timer -->
+<div id="timer-wrap">
+  <div id="session-dots"></div>
+  <div id="timer-display">25:00</div>
+  <div id="timer-label">Focus</div>
+  <div id="free-sublabel"></div>
+  <div id="timer-btns">
+    <button class="timer-btn active-btn" id="btn-start">Start</button>
+    <button class="timer-btn" id="btn-reset">Reset</button>
+  </div>
+  <div id="timer-size-btns">
+    <button class="size-btn" id="btn-smaller">−</button>
+    <button class="size-btn" id="btn-larger">+</button>
+  </div>
+</div>
+
+<!-- UI Layer -->
+<div id="ui-layer">
+  <div id="bottom-bar">
+    <!-- Music -->
+    <div id="music-wrap">
+      <div id="music-channels">
+        <button class="music-btn" data-ch="0">Carti Beats</button>
+        <button class="music-btn" data-ch="1">LoFi Hip Hop</button>
+        <button class="music-btn" data-ch="2">Rain & Fire</button>
+      </div>
+      <div id="volume-row">
+        <span id="volume-icon">♪</span>
+        <input type="range" id="vol-slider" min="0" max="100" value="70">
+      </div>
+    </div>
+
+    <!-- Mode selector -->
+    <div id="mode-wrap">
+      <button class="mode-btn active" data-mode="pomodoro">Pomodoro</button>
+      <button class="mode-btn" data-mode="free">Free</button>
+      <button class="mode-btn" data-mode="break">Break</button>
+    </div>
+
+    <!-- Right controls -->
+    <div id="right-controls">
+      <button class="icon-btn" id="btn-theme" title="Themes">◈</button>
+      <button class="icon-btn" id="btn-todo" title="Tasks (T)">☰</button>
+      <button class="icon-btn" id="btn-note" title="Notes (N)">✎</button>
+      <button class="icon-btn" id="btn-settings" title="Settings">⊙</button>
+      <button class="icon-btn" id="btn-zen" title="Zen mode (H)">◎</button>
+    </div>
+  </div>
+</div>
+
+<!-- Zen hint -->
+<div id="zen-hint">H — Zen Mode</div>
+
+<!-- Theme bar -->
+<div id="theme-bar"></div>
+
+<!-- Notepad panel -->
+<div class="panel" id="notepad-panel">
+  <div class="panel-header">
+    <span class="panel-title">Notes</span>
+    <button class="panel-close" id="note-close">✕</button>
+  </div>
+  <textarea id="notepad-area" placeholder="Start writing…" spellcheck="false"></textarea>
+  <div id="notepad-wordcount">0 words</div>
+</div>
+
+<!-- Todo panel -->
+<div class="panel" id="todo-panel">
+  <div class="panel-header">
+    <span class="panel-title">Tasks</span>
+    <button class="panel-close" id="todo-close">✕</button>
+  </div>
+  <div id="todo-input-wrap">
+    <input type="text" id="todo-input" placeholder="Add a task…" maxlength="80">
+    <button id="todo-add-btn">+</button>
+  </div>
+  <div id="todo-list"></div>
+  <button id="todo-clear-btn">Clear completed</button>
+</div>
+
+<!-- Settings panel -->
+<div class="panel" id="settings-panel">
+  <div class="panel-header">
+    <span class="panel-title">Settings</span>
+    <button class="panel-close" id="settings-close">✕</button>
+  </div>
+  <div style="overflow-y:auto;flex:1;padding-right:4px">
+
+    <div class="setting-section">
+      <span class="setting-label">Clock Style</span>
+      <div class="font-picker" id="font-picker">
+        <div class="font-opt selected" data-font="default">
+          <span class="font-preview" style="font-family:'Outfit';font-weight:200">12:00</span>
+          <span class="font-name">Default</span>
+        </div>
+        <div class="font-opt" data-font="minimal">
+          <span class="font-preview" style="font-family:'Outfit';font-weight:100;opacity:0.6">12:00</span>
+          <span class="font-name">Minimal</span>
+        </div>
+        <div class="font-opt" data-font="serif">
+          <span class="font-preview" style="font-family:'Playfair Display';font-weight:300">12:00</span>
+          <span class="font-name">Serif</span>
+        </div>
+        <div class="font-opt" data-font="handwritten">
+          <span class="font-preview" style="font-family:'Caveat';font-weight:400">12:00</span>
+          <span class="font-name">Script</span>
+        </div>
+        <div class="font-opt" data-font="ghost">
+          <span class="font-preview" style="font-family:'Cormorant Garamond';font-weight:200;opacity:0.5">12:00</span>
+          <span class="font-name">Ghost</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="setting-section">
+      <span class="setting-label">Pomodoro Durations</span>
+      <div class="setting-row">
+        <label>Focus (min)</label>
+        <input class="setting-input" id="set-work" type="number" min="1" max="120" value="25">
+      </div>
+      <div class="setting-row">
+        <label>Short break (min)</label>
+        <input class="setting-input" id="set-short" type="number" min="1" max="60" value="5">
+      </div>
+      <div class="setting-row">
+        <label>Long break (min)</label>
+        <input class="setting-input" id="set-long" type="number" min="1" max="60" value="15">
+      </div>
+    </div>
+
+    <div class="setting-section">
+      <span class="setting-label">Behaviour</span>
+      <div class="setting-row">
+        <label>Auto-start next session</label>
+        <label class="toggle"><input type="checkbox" id="tog-auto"><span class="toggle-slider"></span></label>
+      </div>
+      <div class="setting-row">
+        <label>Sound on session end</label>
+        <label class="toggle"><input type="checkbox" id="tog-sound" checked><span class="toggle-slider"></span></label>
+      </div>
+      <div class="setting-row">
+        <label>Show session dots</label>
+        <label class="toggle"><input type="checkbox" id="tog-dots" checked><span class="toggle-slider"></span></label>
+      </div>
+    </div>
+
+    <div class="setting-section">
+      <span class="setting-label">Actions</span>
+      <button class="settings-action-btn" id="btn-reset-pos">Reset timer position</button>
+      <button class="settings-action-btn" id="btn-clear-note">Clear notepad</button>
+      <button class="settings-action-btn" id="btn-clear-todos">Clear all tasks</button>
+    </div>
+
+    <div style="font-size:9px;color:var(--text-faint);letter-spacing:1.5px;line-height:1.8;margin-top:8px">
+      H — zen mode &nbsp;·&nbsp; Space — start/pause<br>
+      N — notepad &nbsp;·&nbsp; T — tasks &nbsp;·&nbsp; M — music cycle<br>
+      Esc — close panels
+    </div>
+  </div>
+</div>
+
+<!-- YouTube players -->
+<div id="yt-container">
+  <div id="yt-0"></div>
+  <div id="yt-1"></div>
+  <div id="yt-2"></div>
+</div>
+
+<script>
+// ─── CONFIG ──────────────────────────────────────────────────────────────────
+const THEMES = [
+  { id:'tuscan',   name:'Tuscany',      photo:'1523531294919-4bcd7c65e216' },
+  { id:'clouds',   name:'Clouds',       photo:'1559494007-9f5847c49d94' },
+  { id:'nyc',      name:'NYC Night',    photo:'1534430480872-3498386e7856' },
+  { id:'tokyo',    name:'Tokyo',        photo:'1540959733332-eab4deabeeaf' },
+  { id:'fire',     name:'Fireplace',    photo:'1574169208507-84376144848b' },
+  { id:'snow',     name:'Winter',       photo:'1457269449834-928af64c684d' },
+  { id:'beach',    name:'Beach',        photo:'1507525428034-b723cf961d3e' },
+  { id:'library',  name:'Library',      photo:'1481627834876-b7833e8f5570' },
+  { id:'autumn',   name:'Autumn',       photo:'1513836279014-a89f7a76ae86' },
+  { id:'forest',   name:'Forest',       photo:'1448375240586-882707db888b' },
+  { id:'seoul',    name:'Seoul Café',   photo:'1521017432531-fbd92d768814' },
+  { id:'shanghai', name:'Shanghai',     photo:'1474181487882-5abf3f0ba6c2' },
+];
+
+const MUSIC = [
+  { id:'PIBMuKXsvKE', label:'Carti Beats',  start:1991 },
+  { id:'lTRiuFIWV54', label:'LoFi Hip Hop', start:0 },
+  { id:'CHFif_y2TyM', label:'Rain & Fire',  start:861 },
+];
+
+const FONTS = {
+  default:     { family:"'Outfit',sans-serif",            weight:200 },
+  minimal:     { family:"'Outfit',sans-serif",            weight:100, opacity:0.65 },
+  serif:       { family:"'Playfair Display',serif",       weight:300 },
+  handwritten: { family:"'Caveat',cursive",               weight:400 },
+  ghost:       { family:"'Cormorant Garamond',serif",     weight:200, opacity:0.5 },
+};
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let state = {
+  theme: 'tuscan',
+  timerMode: 'pomodoro',  // pomodoro | free | break
+  timerPhase: 'work',     // work | short | long
+  running: false,
+  timeLeft: 25 * 60,
+  elapsed: 0,
+  cycles: 0,
+  timerX: null,
+  timerY: null,
+  timerSize: 120,
+  font: 'default',
+  musicCh: -1,
+  volume: 70,
+  zenMode: false,
+  settings: { work:25, short:5, long:15, autoStart:false, sound:true, dots:true },
+  todos: [],
+  notepad: '',
+};
+
+// ─── DOM refs ─────────────────────────────────────────────────────────────────
+const bg = document.getElementById('bg');
+const timerWrap = document.getElementById('timer-wrap');
+const timerDisplay = document.getElementById('timer-display');
+const timerLabel = document.getElementById('timer-label');
+const freeSub = document.getElementById('free-sublabel');
+const sessionDots = document.getElementById('session-dots');
+const uiLayer = document.getElementById('ui-layer');
+const themeBar = document.getElementById('theme-bar');
+const notepadPanel = document.getElementById('notepad-panel');
+const todoPanel = document.getElementById('todo-panel');
+const settingsPanel = document.getElementById('settings-panel');
+const notepadArea = document.getElementById('notepad-area');
+const todoList = document.getElementById('todo-list');
+const cursor = document.getElementById('cursor');
+const audioHint = document.getElementById('audio-hint');
+const notifyFlash = document.getElementById('notify-flash');
+const volSlider = document.getElementById('vol-slider');
+
+// ─── LOAD STATE ───────────────────────────────────────────────────────────────
+function loadState() {
+  try {
+    const s = localStorage.getItem('focus_state');
+    if (s) {
+      const parsed = JSON.parse(s);
+      Object.assign(state, parsed);
+      state.running = false; // never restore running
+    }
+  } catch(e) {}
+
+  // Apply settings to form
+  document.getElementById('set-work').value = state.settings.work;
+  document.getElementById('set-short').value = state.settings.short;
+  document.getElementById('set-long').value = state.settings.long;
+  document.getElementById('tog-auto').checked = state.settings.autoStart;
+  document.getElementById('tog-sound').checked = state.settings.sound;
+  document.getElementById('tog-dots').checked = state.settings.dots;
+  volSlider.value = state.volume;
+  notepadArea.value = state.notepad;
+  updateWordCount();
+  renderTodos();
+  applyFont(state.font);
+  selectFontOpt(state.font);
+  applyTimerSize(state.timerSize);
+  setTheme(state.theme);
+  setTimerMode(state.timerMode);
+  applyPosition();
+}
+
+function saveState() {
+  try { localStorage.setItem('focus_state', JSON.stringify(state)); } catch(e) {}
+}
+
+// ─── THEME ────────────────────────────────────────────────────────────────────
+function buildThemeBar() {
+  themeBar.innerHTML = '';
+  THEMES.forEach(t => {
+    const el = document.createElement('div');
+    el.className = 'theme-thumb' + (t.id === state.theme ? ' active' : '');
+    el.style.backgroundImage = `url(https://images.unsplash.com/photo-${t.photo}?auto=format&fit=crop&w=200&q=60)`;
+    el.innerHTML = `<span class="theme-thumb-label">${t.name}</span>`;
+    el.addEventListener('click', () => { setTheme(t.id); saveState(); });
+    themeBar.appendChild(el);
+  });
+}
+
+function setTheme(id) {
+  state.theme = id;
+  const t = THEMES.find(x => x.id === id);
+  if (!t) return;
+  bg.style.backgroundImage = `url(https://images.unsplash.com/photo-${t.photo}?auto=format&fit=crop&w=1920&q=80)`;
+  document.querySelectorAll('.theme-thumb').forEach(el => {
+    el.classList.toggle('active', el.querySelector('.theme-thumb-label')?.textContent === t.name);
+  });
+}
+
+// ─── TIMER ────────────────────────────────────────────────────────────────────
+let timerInterval = null;
+let bellCtx = null;
+
+function playBell() {
+  if (!state.settings.sound) return;
+  try {
+    if (!bellCtx) bellCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = bellCtx.createOscillator();
+    const gain = bellCtx.createGain();
+    osc.connect(gain); gain.connect(bellCtx.destination);
+    osc.frequency.setValueAtTime(528, bellCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(440, bellCtx.currentTime + 0.5);
+    gain.gain.setValueAtTime(0.3, bellCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, bellCtx.currentTime + 1.5);
+    osc.start(); osc.stop(bellCtx.currentTime + 1.5);
+  } catch(e) {}
+}
+
+function formatTime(secs) {
+  const m = Math.floor(secs / 60);
+  const s = secs % 60;
+  return String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+}
+
+function formatElapsed(secs) {
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  const s = secs % 60;
+  if (h > 0) return `${h}h ${m}m`;
+  if (m > 0) return `${m}m ${s}s`;
+  return `${s}s`;
+}
+
+function setTimerMode(mode) {
+  state.timerMode = mode;
+  state.running = false;
+  clearInterval(timerInterval);
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+  document.getElementById('btn-start').textContent = 'Start';
+  document.getElementById('btn-start').classList.add('active-btn');
+
+  if (mode === 'pomodoro') {
+    state.timerPhase = 'work';
+    state.timeLeft = state.settings.work * 60;
+    timerLabel.textContent = 'Focus';
+    freeSub.textContent = '';
+  } else if (mode === 'free') {
+    state.elapsed = 0;
+    timerLabel.textContent = 'Free Focus';
+    freeSub.textContent = '';
+  } else {
+    state.timeLeft = state.settings.short * 60;
+    timerLabel.textContent = 'Break';
+    freeSub.textContent = '';
+  }
+
+  updateTimerDisplay();
+  updateSessionDots();
+}
+
+function updateTimerDisplay() {
+  if (state.timerMode === 'free') {
+    timerDisplay.textContent = formatTime(state.elapsed);
+    if (state.elapsed > 0) freeSub.textContent = formatElapsed(state.elapsed);
+  } else {
+    timerDisplay.textContent = formatTime(state.timeLeft);
+    freeSub.textContent = '';
+  }
+  document.title = timerDisplay.textContent + ' · Focus';
+}
+
+function updateSessionDots() {
+  if (!state.settings.dots || state.timerMode !== 'pomodoro') {
+    sessionDots.style.opacity = '0';
+    return;
+  }
+  sessionDots.style.opacity = '1';
+  sessionDots.innerHTML = '';
+  for (let i = 0; i < 4; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i < state.cycles ? ' done' : '');
+    sessionDots.appendChild(d);
+  }
+}
+
+function startTimer() {
+  if (state.running) {
+    pauseTimer(); return;
+  }
+  state.running = true;
+  document.getElementById('btn-start').textContent = 'Pause';
+  document.getElementById('btn-start').classList.remove('active-btn');
+
+  // Unlock AudioContext on first interaction
+  if (bellCtx) bellCtx.resume();
+
+  timerInterval = setInterval(() => {
+    if (state.timerMode === 'free') {
+      state.elapsed++;
+      updateTimerDisplay();
+    } else {
+      state.timeLeft--;
+      updateTimerDisplay();
+      if (state.timeLeft <= 0) {
+        onTimerEnd();
+      }
+    }
+    saveState();
+  }, 1000);
+}
+
+function pauseTimer() {
+  state.running = false;
+  clearInterval(timerInterval);
+  document.getElementById('btn-start').textContent = 'Start';
+  document.getElementById('btn-start').classList.add('active-btn');
+}
+
+function resetTimer() {
+  pauseTimer();
+  if (state.timerMode === 'pomodoro') {
+    state.timeLeft = state.settings.work * 60;
+    state.timerPhase = 'work';
+    timerLabel.textContent = 'Focus';
+  } else if (state.timerMode === 'free') {
+    state.elapsed = 0;
+    freeSub.textContent = '';
+  } else {
+    state.timeLeft = state.settings.short * 60;
+  }
+  updateTimerDisplay();
+  saveState();
+}
+
+function onTimerEnd() {
+  pauseTimer();
+  playBell();
+
+  if (state.timerMode === 'pomodoro') {
+    if (state.timerPhase === 'work') {
+      state.cycles = (state.cycles + 1) % 4;
+      updateSessionDots();
+      if (state.cycles === 0) {
+        state.timerPhase = 'long';
+        state.timeLeft = state.settings.long * 60;
+        timerLabel.textContent = 'Long Break';
+        notify('Long break — ' + state.settings.long + ' min');
+      } else {
+        state.timerPhase = 'short';
+        state.timeLeft = state.settings.short * 60;
+        timerLabel.textContent = 'Short Break';
+        notify('Short break — ' + state.settings.short + ' min');
+      }
+    } else {
+      state.timerPhase = 'work';
+      state.timeLeft = state.settings.work * 60;
+      timerLabel.textContent = 'Focus';
+      notify('Back to focus — ' + state.settings.work + ' min');
+    }
+    updateTimerDisplay();
+    if (state.settings.autoStart) startTimer();
+  } else if (state.timerMode === 'break') {
+    state.timeLeft = 0;
+    notify('Break over');
+  }
+  saveState();
+}
+
+function notify(msg) {
+  notifyFlash.textContent = msg;
+  notifyFlash.classList.add('show');
+  setTimeout(() => notifyFlash.classList.remove('show'), 3000);
+}
+
+// ─── TIMER DRAG & RESIZE ──────────────────────────────────────────────────────
+let dragging = false, dragOffX = 0, dragOffY = 0;
+
+function applyPosition() {
+  if (state.timerX !== null && state.timerY !== null) {
+    timerWrap.style.left = state.timerX + 'px';
+    timerWrap.style.top = state.timerY + 'px';
+  } else {
+    timerWrap.style.left = '50%';
+    timerWrap.style.top = '50%';
+  }
+}
+
+function applyTimerSize(size) {
+  state.timerSize = Math.max(48, Math.min(260, size));
+  timerDisplay.style.fontSize = state.timerSize + 'px';
+  timerDisplay.style.letterSpacing = (state.timerSize > 100 ? -2 : -0.5) + 'px';
+}
+
+timerWrap.addEventListener('mousedown', e => {
+  if (e.target.closest('button')) return;
+  dragging = true;
+  const rect = timerWrap.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  dragOffX = e.clientX - cx;
+  dragOffY = e.clientY - cy;
+  e.preventDefault();
+});
+
+document.addEventListener('mousemove', e => {
+  if (!dragging) return;
+  state.timerX = e.clientX - dragOffX;
+  state.timerY = e.clientY - dragOffY;
+  timerWrap.style.left = state.timerX + 'px';
+  timerWrap.style.top = state.timerY + 'px';
+  timerWrap.style.transform = 'translate(-50%,-50%)';
+});
+
+document.addEventListener('mouseup', () => {
+  if (dragging) { dragging = false; saveState(); }
+});
+
+document.getElementById('btn-larger').addEventListener('click', () => {
+  applyTimerSize(state.timerSize + 16); saveState();
+});
+document.getElementById('btn-smaller').addEventListener('click', () => {
+  applyTimerSize(state.timerSize - 16); saveState();
+});
+
+timerWrap.addEventListener('wheel', e => {
+  e.preventDefault();
+  applyTimerSize(state.timerSize - Math.sign(e.deltaY) * 8);
+  saveState();
+}, { passive: false });
+
+// ─── FONT ─────────────────────────────────────────────────────────────────────
+function applyFont(f) {
+  state.font = f;
+  const fd = FONTS[f] || FONTS.default;
+  timerDisplay.style.fontFamily = fd.family;
+  timerDisplay.style.fontWeight = fd.weight;
+  timerDisplay.style.opacity = fd.opacity || 1;
+}
+
+function selectFontOpt(f) {
+  document.querySelectorAll('.font-opt').forEach(el => {
+    el.classList.toggle('selected', el.dataset.font === f);
+  });
+}
+
+document.querySelectorAll('.font-opt').forEach(el => {
+  el.addEventListener('click', () => {
+    applyFont(el.dataset.font);
+    selectFontOpt(el.dataset.font);
+    saveState();
+  });
+});
+
+// ─── MUSIC (YouTube IFrame API) ───────────────────────────────────────────────
+let ytPlayers = [];
+let ytReady = false;
+let ytQueue = [];
+let audioEnabled = false;
+
+window.onYouTubeIframeAPIReady = function() {
+  ytReady = true;
+  MUSIC.forEach((ch, i) => {
+    ytPlayers[i] = new YT.Player('yt-' + i, {
+      height:'113', width:'200',
+      videoId: ch.id,
+      playerVars: {
+        autoplay: 0,
+        controls: 0,
+        start: ch.start,
+        origin: location.origin || 'https://localhost',
+      },
+      events: {
+        onReady: (ev) => {
+          ev.target.setVolume(state.volume);
+          if (ytQueue.length) {
+            const q = ytQueue.shift();
+            if (q !== null) playChannel(q);
+          }
+        }
+      }
+    });
+  });
+};
+
+// Load YouTube API
+const tag = document.createElement('script');
+tag.src = 'https://www.youtube.com/iframe_api';
+document.head.appendChild(tag);
+
+function playChannel(ch) {
+  if (!audioEnabled) {
+    audioEnabled = true;
+    audioHint.classList.remove('show');
+  }
+  if (!ytReady) { ytQueue.push(ch); return; }
+
+  ytPlayers.forEach((p, i) => {
+    if (!p || typeof p.pauseVideo !== 'function') return;
+    if (i === ch) {
+      p.setVolume(state.volume);
+      p.playVideo();
+    } else {
+      p.pauseVideo();
+    }
+  });
+}
+
+function stopAllMusic() {
+  ytPlayers.forEach(p => { if (p && typeof p.pauseVideo === 'function') p.pauseVideo(); });
+}
+
+document.querySelectorAll('.music-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const ch = parseInt(btn.dataset.ch);
+    if (state.musicCh === ch) {
+      stopAllMusic();
+      state.musicCh = -1;
+    } else {
+      state.musicCh = ch;
+      playChannel(ch);
+    }
+    document.querySelectorAll('.music-btn').forEach((b, i) => {
+      b.classList.toggle('playing', i === state.musicCh);
+    });
+    saveState();
+  });
+});
+
+function cycleMusicChannel() {
+  const next = (state.musicCh + 2) % MUSIC.length;
+  const btn = document.querySelector(`.music-btn[data-ch="${next}"]`);
+  if (btn) btn.click();
+}
+
+volSlider.addEventListener('input', () => {
+  state.volume = parseInt(volSlider.value);
+  ytPlayers.forEach(p => { if (p && typeof p.setVolume === 'function') p.setVolume(state.volume); });
+  saveState();
+});
+
+// Restore music channel on load (after a delay for YT API)
+setTimeout(() => {
+  if (state.musicCh >= 0) {
+    document.querySelector(`.music-btn[data-ch="${state.musicCh}"]`)?.classList.add('playing');
+  }
+}, 500);
+
+// ─── UI AUTO-HIDE ─────────────────────────────────────────────────────────────
+let hideTimer = null;
+let uiVisible = true;
+let cursorHideTimer = null;
+
+function showUI() {
+  if (state.zenMode) return;
+  uiLayer.classList.remove('hidden');
+  uiVisible = true;
+  cursor.classList.remove('hidden');
+}
+
+function scheduleHideUI() {
+  clearTimeout(hideTimer);
+  hideTimer = setTimeout(() => {
+    if (!isAnyPanelOpen()) {
+      uiLayer.classList.add('hidden');
+      uiVisible = false;
+    }
+  }, 3000);
+  clearTimeout(cursorHideTimer);
+  cursorHideTimer = setTimeout(() => cursor.classList.add('hidden'), 3000);
+}
+
+function isAnyPanelOpen() {
+  return notepadPanel.classList.contains('open') ||
+         todoPanel.classList.contains('open') ||
+         settingsPanel.classList.contains('open') ||
+         themeBar.classList.contains('show');
+}
+
+document.addEventListener('mousemove', (e) => {
+  cursor.style.left = e.clientX + 'px';
+  cursor.style.top = e.clientY + 'px';
+  cursor.classList.remove('hidden');
+  if (!state.zenMode) showUI();
+  scheduleHideUI();
+});
+
+// ─── ZEN MODE ─────────────────────────────────────────────────────────────────
+function toggleZen() {
+  state.zenMode = !state.zenMode;
+  if (state.zenMode) {
+    uiLayer.classList.add('hidden');
+    closeAllPanels();
+    themeBar.classList.remove('show');
+    document.getElementById('zen-hint').style.opacity = '0';
+  } else {
+    showUI();
+    document.getElementById('zen-hint').style.opacity = '1';
+  }
+  document.getElementById('btn-zen').classList.toggle('active', state.zenMode);
+}
+
+// ─── PANELS ───────────────────────────────────────────────────────────────────
+function closeAllPanels() {
+  notepadPanel.classList.remove('open');
+  todoPanel.classList.remove('open');
+  settingsPanel.classList.remove('open');
+  document.getElementById('btn-note').classList.remove('active');
+  document.getElementById('btn-todo').classList.remove('active');
+  document.getElementById('btn-settings').classList.remove('active');
+}
+
+function togglePanel(panel, btn) {
+  const isOpen = panel.classList.contains('open');
+  closeAllPanels();
+  if (!isOpen) {
+    panel.classList.add('open');
+    btn.classList.add('active');
+  }
+}
+
+document.getElementById('btn-note').addEventListener('click', () => {
+  togglePanel(notepadPanel, document.getElementById('btn-note'));
+  if (notepadPanel.classList.contains('open')) notepadArea.focus();
+});
+document.getElementById('note-close').addEventListener('click', () => {
+  notepadPanel.classList.remove('open');
+  document.getElementById('btn-note').classList.remove('active');
+});
+
+document.getElementById('btn-todo').addEventListener('click', () => {
+  togglePanel(todoPanel, document.getElementById('btn-todo'));
+});
+document.getElementById('todo-close').addEventListener('click', () => {
+  todoPanel.classList.remove('open');
+  document.getElementById('btn-todo').classList.remove('active');
+});
+
+document.getElementById('btn-settings').addEventListener('click', () => {
+  togglePanel(settingsPanel, document.getElementById('btn-settings'));
+});
+document.getElementById('settings-close').addEventListener('click', () => {
+  settingsPanel.classList.remove('open');
+  document.getElementById('btn-settings').classList.remove('active');
+});
+
+// Theme bar
+document.getElementById('btn-theme').addEventListener('click', () => {
+  themeBar.classList.toggle('show');
+  document.getElementById('btn-theme').classList.toggle('active', themeBar.classList.contains('show'));
+});
+
+// ─── NOTEPAD ──────────────────────────────────────────────────────────────────
+let noteDebounce = null;
+notepadArea.addEventListener('input', () => {
+  state.notepad = notepadArea.value;
+  updateWordCount();
+  clearTimeout(noteDebounce);
+  noteDebounce = setTimeout(saveState, 500);
+});
+
+function updateWordCount() {
+  const words = state.notepad.trim() ? state.notepad.trim().split(/\s+/).length : 0;
+  document.getElementById('notepad-wordcount').textContent = words + (words === 1 ? ' word' : ' words');
+}
+
+// ─── TODOS ────────────────────────────────────────────────────────────────────
+function renderTodos() {
+  todoList.innerHTML = '';
+  state.todos.forEach((todo, i) => {
+    const el = document.createElement('div');
+    el.className = 'todo-item' + (todo.done ? ' done' : '');
+    el.innerHTML = `
+      <div class="todo-check">${todo.done ? '✓' : ''}</div>
+      <span class="todo-text">${escHtml(todo.text)}</span>
+      <button class="todo-del" data-i="${i}">✕</button>`;
+    el.querySelector('.todo-check').addEventListener('click', () => toggleTodo(i));
+    el.querySelector('.todo-text').addEventListener('click', () => toggleTodo(i));
+    el.querySelector('.todo-del').addEventListener('click', (e) => { e.stopPropagation(); deleteTodo(i); });
+    todoList.appendChild(el);
+  });
+}
+
+function toggleTodo(i) {
+  state.todos[i].done = !state.todos[i].done;
+  renderTodos(); saveState();
+}
+
+function deleteTodo(i) {
+  state.todos.splice(i, 1);
+  renderTodos(); saveState();
+}
+
+function addTodo() {
+  const val = document.getElementById('todo-input').value.trim();
+  if (!val) return;
+  state.todos.push({ text: val, done: false });
+  document.getElementById('todo-input').value = '';
+  renderTodos(); saveState();
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+document.getElementById('todo-add-btn').addEventListener('click', addTodo);
+document.getElementById('todo-input').addEventListener('keydown', e => { if (e.key === 'Enter') addTodo(); });
+document.getElementById('todo-clear-btn').addEventListener('click', () => {
+  state.todos = state.todos.filter(t => !t.done);
+  renderTodos(); saveState();
+});
+
+// ─── SETTINGS INPUTS ──────────────────────────────────────────────────────────
+['work','short','long'].forEach(k => {
+  document.getElementById('set-'+k).addEventListener('change', () => {
+    const val = parseInt(document.getElementById('set-'+k).value) || (k==='work'?25:k==='short'?5:15);
+    state.settings[k] = Math.max(1, val);
+    document.getElementById('set-'+k).value = state.settings[k];
+    if (state.timerMode === 'pomodoro' && !state.running) {
+      state.timeLeft = state.settings.work * 60;
+      updateTimerDisplay();
+    }
+    saveState();
+  });
+});
+
+['auto','sound','dots'].forEach(k => {
+  document.getElementById('tog-'+k).addEventListener('change', () => {
+    const map = {auto:'autoStart',sound:'sound',dots:'dots'};
+    state.settings[map[k]] = document.getElementById('tog-'+k).checked;
+    updateSessionDots();
+    saveState();
+  });
+});
+
+document.getElementById('btn-reset-pos').addEventListener('click', () => {
+  state.timerX = null; state.timerY = null;
+  timerWrap.style.left = '50%';
+  timerWrap.style.top = '50%';
+  saveState();
+});
+document.getElementById('btn-clear-note').addEventListener('click', () => {
+  state.notepad = ''; notepadArea.value = ''; updateWordCount(); saveState();
+});
+document.getElementById('btn-clear-todos').addEventListener('click', () => {
+  state.todos = []; renderTodos(); saveState();
+});
+
+// ─── BUTTON HANDLERS ─────────────────────────────────────────────────────────
+document.getElementById('btn-start').addEventListener('click', startTimer);
+document.getElementById('btn-reset').addEventListener('click', resetTimer);
+document.getElementById('btn-zen').addEventListener('click', toggleZen);
+
+document.querySelectorAll('.mode-btn').forEach(b => {
+  b.addEventListener('click', () => { setTimerMode(b.dataset.mode); saveState(); });
+});
+
+// ─── KEYBOARD ─────────────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.target === notepadArea || e.target === document.getElementById('todo-input') ||
+      e.target.tagName === 'INPUT') return;
+
+  switch(e.key) {
+    case ' ':
+      e.preventDefault();
+      if (state.timerMode === 'free' || state.running) startTimer();
+      else startTimer();
+      break;
+    case 'h': case 'H': toggleZen(); break;
+    case 'n': case 'N':
+      togglePanel(notepadPanel, document.getElementById('btn-note'));
+      if (notepadPanel.classList.contains('open')) setTimeout(()=>notepadArea.focus(),400);
+      break;
+    case 't': case 'T':
+      togglePanel(todoPanel, document.getElementById('btn-todo'));
+      break;
+    case 'm': case 'M':
+      cycleMusicChannel();
+      break;
+    case 'Escape':
+      if (themeBar.classList.contains('show')) {
+        themeBar.classList.remove('show');
+        document.getElementById('btn-theme').classList.remove('active');
+      } else {
+        closeAllPanels();
+      }
+      break;
+  }
+});
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+loadState();
+buildThemeBar();
+scheduleHideUI();
+
+// First load audio hint
+setTimeout(() => {
+  audioHint.classList.add('show');
+  setTimeout(() => audioHint.classList.remove('show'), 2500);
+}, 800);
+
+// Sync music btn state
+document.querySelectorAll('.music-btn').forEach((b,i) => {
+  b.classList.toggle('playing', i === state.musicCh);
+});
+
+// Ensure transform stays correct
+timerWrap.style.transform = 'translate(-50%,-50%)';
+</script>
+</body>
+</html>
