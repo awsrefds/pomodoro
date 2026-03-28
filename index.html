@@ -149,7 +149,7 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
 #theme-bar::-webkit-scrollbar{height:2px}
 #theme-bar::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.2);border-radius:2px}
 #theme-bar.show{opacity:1;pointer-events:auto}
-.theme-thumb{width:54px;height:40px;border-radius:8px;cursor:pointer;border:2px solid transparent;transition:all 0.2s;background-size:cover;background-position:center;flex-shrink:0;position:relative;overflow:hidden}
+.theme-thumb{width:54px;height:40px;border-radius:8px;cursor:pointer;border:2px solid transparent;transition:all 0.2s;background-size:cover;background-position:center;flex-shrink:0;position:relative;overflow:hidden;background-color:#1a1a1a}
 .theme-thumb:hover{transform:scale(1.05);border-color:rgba(255,255,255,0.4)}
 .theme-thumb.active{border-color:white}
 .theme-thumb-label{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,0.7));font-size:6px;letter-spacing:0.5px;text-align:center;padding:3px 2px 2px;color:rgba(255,255,255,0.8)}
@@ -248,8 +248,8 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
 <!-- Custom URL popup -->
 <div id="custom-url-popup">
   <span class="popup-label">Custom Background</span>
-  <span class="popup-hint">Paste an Unsplash page URL, a direct image URL, or any image link.</span>
-  <input type="text" id="custom-url-input" placeholder="https://unsplash.com/photos/... or direct image URL">
+  <span class="popup-hint">Paste a direct image URL (jpg, png, webp, etc.).</span>
+  <input type="text" id="custom-url-input" placeholder="https://example.com/photo.jpg">
   <button id="custom-url-apply">Apply →</button>
 </div>
 
@@ -367,43 +367,44 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
 
 <script>
 // ─── THEMES ──────────────────────────────────────────────────────────────────
-// Uses source.unsplash.com with short photo IDs from Unsplash page URLs.
-// Format: https://source.unsplash.com/{photoId}/1920x1080
+// Uses direct images.unsplash.com CDN URLs (source.unsplash.com was deprecated).
+// Format: https://images.unsplash.com/photo-{id}?w=1920&q=80&fit=crop
+// Thumb:  https://images.unsplash.com/photo-{id}?w=400&q=60&fit=crop
 const THEMES = [
-  { id:'tuscan',        name:'Tuscany',        photoId:'fJWYwHWYQpY' },
-  { id:'clouds',        name:'Clouds',         photoId:'LtWFFVi1RXQ' },
-  { id:'forest',        name:'Forest',         photoId:'3Kv48NS4WUU' },
-  { id:'forest2',       name:'Forest II',      photoId:'sp-p7uuT0tw'  },
-  { id:'nyc',           name:'NYC Night',      photoId:'fT6-YkB0nfg'  },
-  { id:'tokyo-tower',   name:'Tokyo Tower',    photoId:'3-esk8zPwPY'  },
-  { id:'tokyo-night',   name:'Tokyo Night',    photoId:'eeUmYVTkFg4'  },
-  { id:'shanghai',      name:'Shanghai',       photoId:'oV9hp8wXkPE'  },
-  { id:'fireplace',     name:'Fireplace',      photoId:'DI8Bf6K1134'  },
-  { id:'winter',        name:'Winter Cabin',   photoId:'OgcJIKRnRC8'  },
-  { id:'sunset-clouds', name:'Sunset Clouds',  photoId:'quS7YOKdiXA'  },
-  { id:'ocean-sunset',  name:'Ocean Sunset',   photoId:'kbYD_aSAeg8'  },
-  { id:'study',         name:'Study',          photoId:'Eti6ph51H4A'  },
-  { id:'library',       name:'Library',        photoId:'HsHybQQHgWo'  },
-  { id:'dark-academia', name:'Dark Academia',  photoId:'vTKLujPJecw'  },
-  { id:'beach',         name:'Beach',          photoId:'TWoL-QCZubY'  },
-  { id:'zen',           name:'Zen',            photoId:'P-yzuyWFEIk'  },
-  { id:'peace',         name:'Peace',          photoId:'7AcMUSYRZpU'  },
-  { id:'autumn',        name:'Autumn',         photoId:'RwHv7LgeC7s'  },
-  { id:'rainy',         name:'Rainy Day',      photoId:'_cqRjq4rp0M'  },
-  { id:'night-sky',     name:'Night Sky',      photoId:'EZ-8F58W478'  },
-  { id:'night-sky2',    name:'Night Sky II',   photoId:'uj-w-v7OFT4'  },
-  { id:'liquid-glass',  name:'Liquid Glass',   photoId:'logNx9b2oEQ'  },
-  { id:'black-wave',    name:'Black Wave',     photoId:'ciO5L8pin8A'  },
-  { id:'minimal',       name:'Minimal',        photoId:'HkyWIigb5bg'  },
+  { id:'tuscan',        name:'Tuscany',        photoId:'photo-1506905925346-21bda4d32df4' },
+  { id:'clouds',        name:'Clouds',         photoId:'photo-1504608524841-42584120d1cc' },
+  { id:'forest',        name:'Forest',         photoId:'photo-1448375240586-882707db888b' },
+  { id:'forest2',       name:'Forest II',      photoId:'photo-1542601906897-ecd5f2ac9c2e' },
+  { id:'nyc',           name:'NYC Night',      photoId:'photo-1534430480872-3498386e7856' },
+  { id:'tokyo-tower',   name:'Tokyo Tower',    photoId:'photo-1540959733332-eab4deabeeaf' },
+  { id:'tokyo-night',   name:'Tokyo Night',    photoId:'photo-1513407030348-c983a97b98d8' },
+  { id:'shanghai',      name:'Shanghai',       photoId:'photo-1474181487882-5abf3f0ba6c2' },
+  { id:'fireplace',     name:'Fireplace',      photoId:'photo-1508193638397-1c4234db14d8' },
+  { id:'winter',        name:'Winter Cabin',   photoId:'photo-1418985991508-e47386d96a71' },
+  { id:'sunset-clouds', name:'Sunset Clouds',  photoId:'photo-1499346030926-9a72daac6c63' },
+  { id:'ocean-sunset',  name:'Ocean Sunset',   photoId:'photo-1505118380757-91f5f5632de0' },
+  { id:'study',         name:'Study',          photoId:'photo-1456513080510-7bf3a84b82f8' },
+  { id:'library',       name:'Library',        photoId:'photo-1507003211169-0a1dd7228f2d' },
+  { id:'dark-academia', name:'Dark Academia',  photoId:'photo-1519682337058-a94d519337bc' },
+  { id:'beach',         name:'Beach',          photoId:'photo-1507525428034-b723cf961d3e' },
+  { id:'zen',           name:'Zen',            photoId:'photo-1512916194211-3f2b7f5f7de3' },
+  { id:'autumn',        name:'Autumn',         photoId:'photo-1508739773434-c26b3d09e071' },
+  { id:'rainy',         name:'Rainy Day',      photoId:'photo-1519692933481-e162a57d6721' },
+  { id:'night-sky',     name:'Night Sky',      photoId:'photo-1446941611757-91d2c3bd3d45' },
+  { id:'night-sky2',    name:'Night Sky II',   photoId:'photo-1419242902214-272b3f66ee7a' },
+  { id:'minimal',       name:'Minimal',        photoId:'photo-1558618666-fcd25c85cd64' },
+  { id:'mountain',      name:'Mountain',       photoId:'photo-1464822759023-fed622ff2c3b' },
+  { id:'desert',        name:'Desert',         photoId:'photo-1509316785289-025f5b846b35' },
+  { id:'lake',          name:'Lake',           photoId:'photo-1439066615861-d1af74d74000' },
 ];
 
-function unsplashBg(photoId)    { return `https://source.unsplash.com/${photoId}/1920x1080`; }
-function unsplashThumb(photoId) { return `https://source.unsplash.com/${photoId}/400x300`; }
+function unsplashBg(photoId)    { return `https://images.unsplash.com/${photoId}?w=1920&q=80&fit=crop&auto=format`; }
+function unsplashThumb(photoId) { return `https://images.unsplash.com/${photoId}?w=400&q=60&fit=crop&auto=format`; }
 
 // ─── MUSIC ────────────────────────────────────────────────────────────────────
 const MUSIC = [
   { id:'PIBMuKXsvKE', label:'Carti Beats',  start:1991 },
-  { id:'CLeZyIID9Bo', label:'LoFi Hip Hop', start:0    },  // Updated playlist
+  { id:'CLeZyIID9Bo', label:'LoFi Hip Hop', start:0    },
   { id:'CHFif_y2TyM', label:'Rain & Fire',  start:861  },
 ];
 
@@ -419,7 +420,7 @@ const FONTS = {
 // ─── STATE ────────────────────────────────────────────────────────────────────
 let state = {
   theme: 'tuscan',
-  customBg: null,          // direct image URL if user set custom background
+  customBg: null,
   timerMode: 'pomodoro',
   timerPhase: 'work',
   running: false,
@@ -462,7 +463,7 @@ const customInput    = document.getElementById('custom-url-input');
 // ─── PERSIST ──────────────────────────────────────────────────────────────────
 function loadState() {
   try {
-    const s = localStorage.getItem('focus_state_v2');
+    const s = localStorage.getItem('focus_state_v3');
     if (s) Object.assign(state, JSON.parse(s));
     state.running = false;
   } catch(e) {}
@@ -488,17 +489,17 @@ function loadState() {
   applyPosition();
 }
 function saveState() {
-  try { localStorage.setItem('focus_state_v2', JSON.stringify(state)); } catch(e) {}
+  try { localStorage.setItem('focus_state_v3', JSON.stringify(state)); } catch(e) {}
 }
 
 // ─── THEME & BACKGROUND ───────────────────────────────────────────────────────
 function buildThemeBar() {
   themeBar.innerHTML = '';
 
-  // Standard theme thumbnails
   THEMES.forEach(t => {
     const el = document.createElement('div');
     el.className = 'theme-thumb' + (t.id === state.theme && !state.customBg ? ' active' : '');
+    // Set a placeholder colour while the thumbnail loads
     el.style.backgroundImage = `url(${unsplashThumb(t.photoId)})`;
     el.title = t.name;
     el.innerHTML = `<span class="theme-thumb-label">${t.name}</span>`;
@@ -543,40 +544,22 @@ function setTheme(id, save) {
 
 function applyDirectBg(url) {
   bg.style.backgroundImage = `url(${url})`;
-  // Deselect all theme thumbs
   document.querySelectorAll('.theme-thumb').forEach(el => el.classList.remove('active'));
   const customBtn = document.getElementById('custom-url-btn');
   if (customBtn) customBtn.style.borderColor = 'rgba(120,200,255,0.7)';
 }
 
 // ─── CUSTOM URL ───────────────────────────────────────────────────────────────
-function extractUnsplashUrl(raw) {
+function extractImageUrl(raw) {
   raw = raw.trim();
   if (!raw) return null;
-
-  // Direct image URL (already an image link)
-  if (/\.(jpg|jpeg|png|webp|gif|avif)(\?|$)/i.test(raw)) return raw;
-
-  // Unsplash page URL: extract short photo ID from the last path segment
-  // e.g. https://unsplash.com/photos/some-title-PHOTOID  → PHOTOID
-  const unsplashMatch = raw.match(/unsplash\.com\/photos\/[^/]*?-([A-Za-z0-9_-]{10,12})\/?(?:\?.*)?$/);
-  if (unsplashMatch) return `https://source.unsplash.com/${unsplashMatch[1]}/1920x1080`;
-
-  // Short ID only (e.g. "oV9hp8wXkPE")
-  if (/^[A-Za-z0-9_-]{10,12}$/.test(raw)) return `https://source.unsplash.com/${raw}/1920x1080`;
-
-  // source.unsplash.com URL already
-  if (raw.startsWith('https://source.unsplash.com')) return raw;
-
-  // Any other URL — try using it directly
-  if (raw.startsWith('http')) return raw;
-
+  if (/^https?:\/\/.+/i.test(raw)) return raw;
   return null;
 }
 
 document.getElementById('custom-url-apply').addEventListener('click', () => {
-  const url = extractUnsplashUrl(customInput.value);
-  if (!url) { notify('Could not parse URL — try a direct image link'); return; }
+  const url = extractImageUrl(customInput.value);
+  if (!url) { notify('Please enter a valid image URL'); return; }
   state.customBg = url;
   state.theme = '';
   applyDirectBg(url);
@@ -591,7 +574,6 @@ customInput.addEventListener('keydown', e => {
   if (e.key === 'Escape') customPopup.classList.remove('show');
 });
 
-// Close popup on outside click
 document.addEventListener('click', e => {
   if (!customPopup.contains(e.target) && e.target.id !== 'custom-url-btn') {
     customPopup.classList.remove('show');
