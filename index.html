@@ -18,6 +18,11 @@
   --ui-font:'Outfit',sans-serif;
   --timer-font:'Outfit',sans-serif;
   --timer-weight:200;
+  --timer-opacity:1;
+  --vignette-intensity:0.55;
+  --vignette-top:0.25;
+  --bg-blur:0px;
+  --bg-darken:0;
 }
 html,body{width:100%;height:100%;overflow:hidden;background:#0a0a0a}
 body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
@@ -28,8 +33,10 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
 
 /* Background */
 #bg{position:fixed;inset:0;z-index:0;background-size:cover;background-position:center;background-repeat:no-repeat;transition:background-image 1s ease}
-#vignette{position:fixed;inset:0;z-index:1;background:radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.55) 100%),linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.4) 100%);pointer-events:none}
-#blur-overlay{position:fixed;inset:0;z-index:2;backdrop-filter:blur(0px);transition:backdrop-filter 0.4s;pointer-events:none}
+#darken-overlay{position:fixed;inset:0;z-index:1;background:rgba(0,0,0,var(--bg-darken));pointer-events:none;transition:background 0.3s ease}
+#vignette{position:fixed;inset:0;z-index:2;background:radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,var(--vignette-intensity)) 100%),linear-gradient(to bottom, rgba(0,0,0,var(--vignette-top)) 0%, transparent 30%, transparent 70%, rgba(0,0,0,var(--vignette-intensity)) 100%);pointer-events:none;transition:background 0.3s ease}
+#blur-overlay{position:fixed;inset:0;z-index:3;backdrop-filter:blur(var(--bg-blur));transition:backdrop-filter 0.3s ease;pointer-events:none}
+.zen #ui-layer,.zen #top-metrics,.zen #stats-bar,.zen #streak-badge,.zen #theme-bar,.zen #custom-url-popup,.zen #audio-hint,.zen #notify-flash,.zen #zen-hint,.zen #cursor,.zen #bottom-bar,.zen #history-panel,.zen #notepad-panel,.zen #todo-panel,.zen #settings-panel{display:none!important}
 
 /* Timer */
 #timer-wrap{position:fixed;z-index:20;display:flex;flex-direction:column;align-items:center;gap:6px;transform:translate(-50%,-50%);cursor:grab;left:50%;top:50%}
@@ -57,20 +64,38 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
 #ui-layer > *{pointer-events:auto}
 
 /* Bottom bar */
-#bottom-bar{position:absolute;bottom:28px;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:0 32px;gap:16px}
+#bottom-bar{position:absolute;bottom:40px;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:0 32px;gap:16px}
 
 /* Music controls */
 #music-wrap{display:flex;flex-direction:column;gap:10px}
-#music-channels{display:flex;gap:6px}
-.music-btn{background:var(--glass);border:1px solid var(--glass-border);color:var(--text-dim);font-family:var(--ui-font);font-size:10px;font-weight:400;letter-spacing:1.5px;text-transform:uppercase;padding:6px 14px;border-radius:20px;cursor:pointer;backdrop-filter:blur(12px);transition:all 0.2s;white-space:nowrap}
+#music-channels{display:flex;flex-direction:column;gap:8px}
+.music-mix-row{display:flex;align-items:center;gap:8px}
+.music-btn{background:var(--glass);border:1px solid var(--glass-border);color:var(--text-dim);font-family:var(--ui-font);font-size:10px;font-weight:400;letter-spacing:1.5px;text-transform:uppercase;padding:6px 12px;border-radius:14px;cursor:pointer;backdrop-filter:blur(12px);transition:all 0.2s;white-space:nowrap;min-width:110px;text-align:left}
 .music-btn:hover{color:var(--text);border-color:rgba(255,255,255,0.3)}
 .music-btn.playing{color:var(--accent);border-color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.14)}
+#music-channels input[type=range]{flex:1;-webkit-appearance:none;appearance:none;height:2px;background:rgba(255,255,255,0.18);border-radius:2px;outline:none;cursor:pointer}
+#music-channels input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.8);cursor:pointer;transition:transform 0.2s}
+#music-channels input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.25)}
 #volume-row{display:flex;align-items:center;gap:8px}
 #volume-icon{color:var(--text-faint);font-size:11px;cursor:pointer;transition:color 0.2s}
 #volume-icon:hover{color:var(--text-dim)}
 #vol-slider{-webkit-appearance:none;appearance:none;width:90px;height:2px;background:rgba(255,255,255,0.2);border-radius:2px;outline:none;cursor:pointer}
 #vol-slider::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.7);cursor:pointer;transition:transform 0.2s}
 #vol-slider::-webkit-slider-thumb:hover{transform:scale(1.3)}
+#stats-bar{position:fixed;left:32px;bottom:20px;z-index:25;display:flex;align-items:center;gap:10px;background:rgba(0,0,0,0.45);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:10px 12px;font-size:11px;letter-spacing:1px;color:var(--text-dim);pointer-events:none;min-width:180px}
+#stats-bar strong{color:var(--text);font-weight:500;letter-spacing:1px}
+#goal-wrap{display:flex;align-items:center;gap:10px;flex:1}
+#goal-bar{position:relative;width:220px;height:6px;border-radius:4px;background:rgba(255,255,255,0.12);overflow:hidden}
+#goal-fill{position:absolute;left:0;top:0;bottom:0;width:30%;background:linear-gradient(90deg,rgba(255,255,255,0.6),rgba(255,255,255,0.35));border-radius:4px;transition:width 0.3s ease}
+#goal-label{font-size:10px;color:var(--text-faint);letter-spacing:1px;white-space:nowrap}
+#deadline-chip{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);padding:6px 10px;border-radius:10px;font-size:10px;letter-spacing:1px;color:var(--text);white-space:nowrap;pointer-events:auto}
+#top-metrics{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:28;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none}
+#streak-badge{position:fixed;right:20px;top:16px;z-index:28;display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(255,255,255,0.14),rgba(255,255,255,0.06));border:1px solid rgba(255,255,255,0.55);backdrop-filter:blur(14px);box-shadow:0 12px 32px rgba(0,0,0,0.18);color:rgba(255,255,255,0.9)}
+#streak-badge .flame-wrap{width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,0.65);background:rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center}
+#streak-badge .flame-icon{width:21px;height:26px;background:linear-gradient(180deg,rgba(255,255,255,0.95),rgba(200,200,200,0.75));mask:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><path fill="black" d="M34.3 4.2c1 6.7-.7 12.1-3.6 16.7-2.8 4.6-8.8 8.5-9.9 14.5-1 5.4 2 12.1 8.7 14.5-1.3-4.3-.5-9.4 1.7-12.5-.4 3.5 1.6 5.7 4 6.8 4.2 2 9.7-.1 11.6-5.6 2.2-6.5-2.8-12.3-6.3-15.7-3.9-3.8-5-8.4-6.2-12.6C33.5 8.5 33.2 6.1 34.3 4.2z"/></svg>') center/contain no-repeat;-webkit-mask:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><path fill="black" d="M34.3 4.2c1 6.7-.7 12.1-3.6 16.7-2.8 4.6-8.8 8.5-9.9 14.5-1 5.4 2 12.1 8.7 14.5-1.3-4.3-.5-9.4 1.7-12.5-.4 3.5 1.6 5.7 4 6.8 4.2 2 9.7-.1 11.6-5.6 2.2-6.5-2.8-12.3-6.3-15.7-3.9-3.8-5-8.4-6.2-12.6C33.5 8.5 33.2 6.1 34.3 4.2z"/></svg>') center/contain no-repeat}
+#streak-badge .streak-text{display:flex;flex-direction:column;line-height:1.2}
+#streak-badge .label{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.65)}
+#streak-badge .count{font-weight:700;font-size:15px;letter-spacing:1px;color:rgba(255,255,255,0.95)}
 #audio-hint{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.55);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:18px 28px;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);z-index:100;pointer-events:none;opacity:0;transition:opacity 0.4s;text-align:center}
 #audio-hint.show{opacity:1}
 
@@ -95,7 +120,7 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
 .panel-close:hover{color:var(--text)}
 
 /* Notepad */
-#notepad-area{flex:1;background:none;border:none;outline:none;color:var(--text);font-family:var(--ui-font);font-size:14px;font-weight:300;line-height:1.75;resize:none;width:100%}
+#notepad-area{flex:1;background:none;border:none;outline:none;color:var(--text);font-family:var(--ui-font);font-size:14px;font-weight:300;line-height:1.75;resize:vertical;min-height:200px;max-height:70vh;width:100%}
 #notepad-area::placeholder{color:var(--text-faint)}
 #notepad-wordcount{font-size:10px;color:var(--text-faint);letter-spacing:1px;margin-top:12px;text-align:right}
 
@@ -105,24 +130,47 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
 #todo-input::placeholder{color:var(--text-faint)}
 #todo-add-btn{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:var(--text);border-radius:8px;padding:8px 12px;cursor:pointer;font-size:13px;transition:background 0.2s}
 #todo-add-btn:hover{background:rgba(255,255,255,0.2)}
-#todo-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:6px}
+#todo-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
 #todo-list::-webkit-scrollbar{width:2px}
 #todo-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:2px}
-.todo-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--glass);border:1px solid var(--glass-border);border-radius:8px;cursor:pointer;transition:all 0.2s}
+.todo-item{display:flex;flex-direction:column;gap:8px;padding:12px 12px;background:var(--glass);border:1px solid var(--glass-border);border-radius:10px;transition:all 0.2s}
 .todo-item:hover{background:rgba(255,255,255,0.1)}
-.todo-item.done{opacity:0.4}
-.todo-check{width:16px;height:16px;border:1px solid rgba(255,255,255,0.3);border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;transition:all 0.2s}
+.todo-item.done{opacity:0.55}
+.todo-row{display:flex;align-items:center;gap:10px}
+.todo-check{width:16px;height:16px;border:1px solid rgba(255,255,255,0.3);border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;transition:all 0.2s;cursor:pointer}
 .todo-item.done .todo-check{background:rgba(255,255,255,0.7);border-color:transparent;color:#000}
-.todo-text{flex:1;font-size:13px;font-weight:300;color:var(--text);transition:all 0.2s}
+.todo-text{flex:1;font-size:13px;font-weight:300;color:var(--text);transition:all 0.2s;cursor:pointer}
 .todo-item.done .todo-text{text-decoration:line-through;color:var(--text-dim)}
 .todo-del{background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:12px;opacity:0;transition:opacity 0.2s;line-height:1}
 .todo-item:hover .todo-del{opacity:1}
 .todo-del:hover{color:rgba(255,100,100,0.7)}
+.sub-list{display:flex;flex-direction:column;gap:6px;margin-left:24px}
+.sub-item{display:flex;align-items:center;gap:8px}
+.sub-item .sub-check{width:14px;height:14px;border:1px solid rgba(255,255,255,0.28);border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;cursor:pointer;color:rgba(0,0,0,0.8);background:transparent}
+.sub-item.done .sub-check{background:rgba(255,255,255,0.7);border-color:transparent}
+.sub-text{flex:1;font-size:12px;font-weight:300;color:var(--text-dim);cursor:pointer}
+.sub-item.done .sub-text{text-decoration:line-through;color:var(--text-faint)}
+.sub-del{background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:11px;opacity:0;transition:opacity 0.2s;line-height:1}
+.sub-item:hover .sub-del{opacity:1}
+.sub-add{display:flex;align-items:center;gap:6px;margin-top:2px}
+.sub-input{flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:6px 8px;color:var(--text);font-size:12px;outline:none}
+.sub-input::placeholder{color:var(--text-faint)}
+.sub-add-btn{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.18);color:var(--text);border-radius:6px;padding:6px 9px;cursor:pointer;font-size:12px;line-height:1;transition:all 0.2s}
+.sub-add-btn:hover{background:rgba(255,255,255,0.2)}
 #todo-clear-btn{margin-top:12px;background:none;border:1px solid rgba(255,255,255,0.1);color:var(--text-faint);font-family:var(--ui-font);font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:7px;border-radius:8px;cursor:pointer;transition:all 0.2s;width:100%}
 #todo-clear-btn:hover{border-color:rgba(255,255,255,0.25);color:var(--text-dim)}
 
 /* Settings */
 #settings-panel{width:340px}
+#notepad-panel{width:420px;max-width:80vw}
+#history-panel{width:360px}
+#history-panel .history-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-right:4px}
+.history-item{background:var(--glass);border:1px solid var(--glass-border);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+.history-item .meta{font-size:11px;letter-spacing:1px;color:var(--text-faint);display:flex;justify-content:space-between}
+.history-item .intent{font-size:13px;color:var(--text);font-weight:300;word-break:break-word}
+.sparkline-wrap{margin-bottom:14px}
+.sparkline-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text-faint);margin-bottom:6px}
+.sparkline{width:100%;height:50px}
 .setting-section{margin-bottom:24px}
 .setting-label{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--text-faint);margin-bottom:12px;display:block}
 .setting-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
@@ -178,6 +226,17 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
 #notify-flash{position:fixed;top:24px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.55);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.12);border-radius:30px;padding:8px 22px;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);z-index:50;opacity:0;transition:opacity 0.5s;pointer-events:none}
 #notify-flash.show{opacity:1}
 
+/* Intention prompt */
+#intention-modal{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,0.6);backdrop-filter:blur(16px);display:none;align-items:center;justify-content:center;padding:16px}
+#intention-modal.show{display:flex}
+#intention-box{width:360px;max-width:90vw;background:rgba(20,20,20,0.9);border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:18px 18px 14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 20px 50px rgba(0,0,0,0.3)}
+#intention-title{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--text-faint)}
+#intention-input{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px 12px;color:var(--text);font-size:14px;font-family:var(--ui-font);outline:none}
+#intention-input::placeholder{color:var(--text-faint)}
+#intention-actions{display:flex;justify-content:flex-end;gap:10px}
+.intent-btn{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:var(--text);border-radius:10px;padding:8px 14px;font-size:12px;cursor:pointer;transition:all 0.2s;letter-spacing:1px;text-transform:uppercase}
+.intent-btn:hover{background:rgba(255,255,255,0.22)}
+
 *::-webkit-scrollbar{width:3px}
 *::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:3px}
 
@@ -190,16 +249,28 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
 
 <div id="cursor"></div>
 <div id="bg"></div>
+<div id="darken-overlay"></div>
 <div id="vignette"></div>
 <div id="blur-overlay"></div>
 <div id="notify-flash"></div>
 <div id="audio-hint">Click a channel to enable audio</div>
+<div id="intention-modal">
+  <div id="intention-box">
+    <div id="intention-title">Focus intention</div>
+    <input id="intention-input" placeholder="What are you working on?" maxlength="120">
+    <div id="intention-actions">
+      <button class="intent-btn" id="intent-skip">Skip</button>
+      <button class="intent-btn" id="intent-save">Start</button>
+    </div>
+  </div>
+</div>
 
 <!-- Timer -->
 <div id="timer-wrap">
   <div id="session-dots"></div>
   <div id="timer-display">25:00</div>
   <div id="timer-label">Focus</div>
+  <div id="clock-display" style="font-size:14px;color:var(--text-dim);letter-spacing:1px"></div>
   <div id="free-sublabel"></div>
   <div id="timer-btns">
     <button class="timer-btn active-btn" id="btn-start">Start</button>
@@ -216,9 +287,18 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
   <div id="bottom-bar">
     <div id="music-wrap">
       <div id="music-channels">
-        <button class="music-btn" data-ch="0">Carti Beats</button>
-        <button class="music-btn" data-ch="1">LoFi Hip Hop</button>
-        <button class="music-btn" data-ch="2">Rain &amp; Fire</button>
+        <div class="music-mix-row" data-ch="0">
+          <button class="music-btn" data-ch="0">Carti Beats</button>
+          <input type="range" class="music-vol" data-ch="0" min="0" max="100" value="70">
+        </div>
+        <div class="music-mix-row" data-ch="1">
+          <button class="music-btn" data-ch="1">LoFi Hip Hop</button>
+          <input type="range" class="music-vol" data-ch="1" min="0" max="100" value="70">
+        </div>
+        <div class="music-mix-row" data-ch="2">
+          <button class="music-btn" data-ch="2">Rain &amp; Fire</button>
+          <input type="range" class="music-vol" data-ch="2" min="0" max="100" value="70">
+        </div>
       </div>
       <div id="volume-row">
         <span id="volume-icon">♪</span>
@@ -234,9 +314,30 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
       <button class="icon-btn" id="btn-theme" title="Themes">◈</button>
       <button class="icon-btn" id="btn-todo" title="Tasks (T)">☰</button>
       <button class="icon-btn" id="btn-note" title="Notes (N)">✎</button>
+      <button class="icon-btn" id="btn-history" title="History (L)">🕒</button>
       <button class="icon-btn" id="btn-settings" title="Settings">⊙</button>
       <button class="icon-btn" id="btn-zen" title="Zen mode (H)">◎</button>
     </div>
+  </div>
+</div>
+
+<div id="top-metrics">
+  <span id="deadline-chip">No deadline</span>
+  <div id="goal-wrap">
+    <div id="goal-bar"><div id="goal-fill"></div></div>
+    <span id="goal-label">Goal 6h</span>
+  </div>
+</div>
+
+<div id="stats-bar">
+  <span id="stats-today">0m today</span>
+</div>
+
+<div id="streak-badge">
+  <div class="flame-wrap"><div class="flame-icon"></div></div>
+  <div class="streak-text">
+    <span class="label">Streak</span>
+    <span class="count" id="stats-streak">0</span>
   </div>
 </div>
 
@@ -275,6 +376,19 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
   </div>
   <div id="todo-list"></div>
   <button id="todo-clear-btn">Clear completed</button>
+</div>
+
+<!-- History panel -->
+<div class="panel" id="history-panel">
+  <div class="panel-header">
+    <span class="panel-title">Session History</span>
+    <button class="panel-close" id="history-close">✕</button>
+  </div>
+  <div class="sparkline-wrap">
+    <div class="sparkline-title">Last 30 days</div>
+    <svg id="history-spark" class="sparkline" viewBox="0 0 100 50" preserveAspectRatio="none"></svg>
+  </div>
+  <div class="history-list" id="history-list"></div>
 </div>
 
 <!-- Settings panel -->
@@ -333,6 +447,55 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
         <label>Long break (min)</label>
         <input class="setting-input" id="set-long" type="number" min="1" max="60" value="15">
       </div>
+    </div>
+
+    <div class="setting-section">
+      <span class="setting-label">Daily Goal</span>
+      <div class="setting-row">
+        <label>Focus target (minutes)</label>
+        <input class="setting-input" id="set-goal" type="number" min="10" max="1440" value="360">
+      </div>
+    </div>
+
+    <div class="setting-section">
+      <span class="setting-label">Clock</span>
+      <div class="setting-row">
+        <label>Show current time</label>
+        <label class="toggle"><input type="checkbox" id="tog-clock"><span class="toggle-slider"></span></label>
+      </div>
+    </div>
+
+    <div class="setting-section">
+      <span class="setting-label">Visual Tweaks</span>
+      <div class="setting-row">
+        <label>Vignette</label>
+        <input class="setting-input" id="set-vignette" type="range" min="0" max="90" value="55" style="width:170px">
+      </div>
+      <div class="setting-row">
+        <label>Background blur</label>
+        <input class="setting-input" id="set-blur" type="range" min="0" max="20" value="0" style="width:170px">
+      </div>
+      <div class="setting-row">
+        <label>Background darkness</label>
+        <input class="setting-input" id="set-darken" type="range" min="0" max="80" value="0" style="width:170px">
+      </div>
+      <div class="setting-row">
+        <label>Timer opacity</label>
+        <input class="setting-input" id="set-timer-opacity" type="range" min="20" max="100" value="100" style="width:170px">
+      </div>
+    </div>
+
+    <div class="setting-section">
+      <span class="setting-label">Deadline Countdown</span>
+      <div class="setting-row">
+        <label>Label</label>
+        <input class="setting-input" id="deadline-label" type="text" maxlength="40" placeholder="Exam">
+      </div>
+      <div class="setting-row">
+        <label>Date & time</label>
+        <input class="setting-input" id="deadline-time" type="datetime-local" style="width:170px">
+      </div>
+      <button class="settings-action-btn" id="deadline-clear">Clear deadline</button>
     </div>
 
     <div class="setting-section">
@@ -442,6 +605,16 @@ let state = {
   font: 'default',
   musicCh: -1,
   volume: 70,
+  musicMix: [],
+  stats: { date:'', focusSeconds:0, sessions:0, streak:0 },
+  history: [],
+  focusGoal: 360,
+  deadline: { label:'', iso:'' },
+  vignette: 55,
+  blur: 0,
+  darken: 0,
+  timerOpacity: 100,
+  showClock: false,
   zenMode: false,
   settings: { work:25, short:5, long:15, autoStart:false, sound:true, dots:true },
   todos: [],
@@ -460,14 +633,31 @@ const themeBar       = document.getElementById('theme-bar');
 const notepadPanel   = document.getElementById('notepad-panel');
 const todoPanel      = document.getElementById('todo-panel');
 const settingsPanel  = document.getElementById('settings-panel');
+const historyPanel   = document.getElementById('history-panel');
 const notepadArea    = document.getElementById('notepad-area');
 const todoList       = document.getElementById('todo-list');
+const historyList    = document.getElementById('history-list');
+const historySpark   = document.getElementById('history-spark');
+const intentionModal = document.getElementById('intention-modal');
+const intentionInput = document.getElementById('intention-input');
+const intentSaveBtn  = document.getElementById('intent-save');
+const intentSkipBtn  = document.getElementById('intent-skip');
 const cursorEl       = document.getElementById('cursor');
 const audioHint      = document.getElementById('audio-hint');
 const notifyFlash    = document.getElementById('notify-flash');
 const volSlider      = document.getElementById('vol-slider');
 const customPopup    = document.getElementById('custom-url-popup');
 const customInput    = document.getElementById('custom-url-input');
+const statsTodayEl   = document.getElementById('stats-today');
+const statsStreakEl  = document.getElementById('stats-streak');
+const goalFill       = document.getElementById('goal-fill');
+const goalLabel      = document.getElementById('goal-label');
+const deadlineChip   = document.getElementById('deadline-chip');
+const vignetteSlider = document.getElementById('set-vignette');
+const blurSlider     = document.getElementById('set-blur');
+const darkenSlider   = document.getElementById('set-darken');
+const timerOpacitySlider = document.getElementById('set-timer-opacity');
+const clockDisplay   = document.getElementById('clock-display');
 
 // ─── PERSIST ──────────────────────────────────────────────────────────────────
 function loadState() {
@@ -479,14 +669,40 @@ function loadState() {
   // Default fallbacks for newly added fields
   state.timerWeight = state.timerWeight || (FONTS[state.font]?.weight || 200);
   state.timerColor = state.timerColor || '#ffffff';
+  if (!Array.isArray(state.musicMix) || state.musicMix.length !== MUSIC.length) {
+    state.musicMix = MUSIC.map(()=>({on:false,vol:state.volume||70}));
+  }
+  if (!Array.isArray(state.history)) state.history=[];
+  if (!Array.isArray(state.todos)) state.todos=[];
+  state.todos = state.todos.map(t=>({
+    text: t.text||'',
+    done: !!t.done,
+    children: Array.isArray(t.children)?t.children.map(c=>({text:c.text||'',done:!!c.done})):[]
+  }));
+  normalizeStats();
+  state.deadline = state.deadline || {label:'',iso:''};
+  state.vignette = state.vignette ?? 55;
+  state.blur = state.blur ?? 0;
+  state.darken = state.darken ?? 0;
+  state.timerOpacity = state.timerOpacity ?? 100;
+  state.showClock = !!state.showClock;
   document.getElementById('set-work').value  = state.settings.work;
   document.getElementById('set-short').value = state.settings.short;
   document.getElementById('set-long').value  = state.settings.long;
+  document.getElementById('set-goal').value  = state.focusGoal;
+  document.getElementById('deadline-label').value = state.deadline.label||'';
+  document.getElementById('deadline-time').value = state.deadline.iso||'';
+  document.getElementById('tog-clock').checked = state.showClock;
+  vignetteSlider.value = state.vignette;
+  blurSlider.value = state.blur;
+  darkenSlider.value = state.darken;
+  timerOpacitySlider.value = state.timerOpacity;
   document.getElementById('tog-auto').checked  = state.settings.autoStart;
   document.getElementById('tog-sound').checked = state.settings.sound;
   document.getElementById('tog-dots').checked  = state.settings.dots;
   document.getElementById('timer-weight').value = state.timerWeight;
   document.getElementById('timer-color').value = state.timerColor;
+  document.querySelectorAll('.music-vol').forEach((sl,i)=>{sl.value = state.musicMix[i]?.vol ?? state.volume;});
   volSlider.value    = state.volume;
   notepadArea.value  = state.notepad;
   updateWordCount();
@@ -501,9 +717,136 @@ function loadState() {
   }
   setTimerMode(state.timerMode);
   applyPosition();
+  renderStats();
+  renderGoal();
 }
 function saveState() {
   try { localStorage.setItem('focus_state_v3', JSON.stringify(state)); } catch(e) {}
+}
+
+function todayKey(){return new Date().toISOString().slice(0,10);}
+function isYesterday(dStr){
+  const d=new Date(dStr);const y=new Date();y.setDate(y.getDate()-1);
+  return d.toISOString().slice(0,10)===y.toISOString().slice(0,10);
+}
+function normalizeStats(){
+  const today=todayKey();
+  if(!state.stats||!state.stats.date){state.stats={date:today,focusSeconds:0,sessions:0,streak:0};return;}
+  if(state.stats.date!==today){
+    const prevHadFocus=state.stats.focusSeconds>0;
+    const streak = prevHadFocus && isYesterday(state.stats.date) ? state.stats.streak+1 : (prevHadFocus?1:0);
+    state.stats={date:today,focusSeconds:0,sessions:0,streak};
+  }
+}
+
+function renderStats(){
+  const mins=Math.floor(state.stats.focusSeconds/60);
+  const hrs=Math.floor(mins/60);
+  const remM=mins%60;
+  const pretty = hrs>0 ? `${hrs}h ${remM}m` : `${remM}m`;
+  statsTodayEl.textContent = `${pretty} today • ${state.stats.sessions} sessions`;
+  statsStreakEl.textContent = `Streak ${state.stats.streak}`;
+}
+
+function renderGoal(){
+  const goalSec = (state.focusGoal||0)*60;
+  const pct = goalSec>0 ? Math.min(1, state.stats.focusSeconds/goalSec) : 0;
+  goalFill.style.width = `${Math.round(pct*100)}%`;
+  const hrs = Math.round((state.focusGoal||0)/60*10)/10;
+  goalLabel.textContent = `Goal ${hrs}h`;
+}
+
+function addHistoryEntry(startIso,durationSec,phase,intention){
+  const entry={startIso,duration:Math.max(1,Math.round(durationSec)),phase:intention?phase:phase,intention:intention||''};
+  state.history.push(entry);
+  if(state.history.length>500)state.history=state.history.slice(-500);
+  saveState();
+  renderHistory();
+}
+
+function renderHistory(){
+  if(!historyList)return;
+  historyList.innerHTML='';
+  const items=[...state.history].reverse();
+  if(!items.length){historyList.innerHTML='<div style="color:var(--text-faint);font-size:12px">No sessions logged yet.</div>';return;}
+  items.forEach(ent=>{
+    const wrap=document.createElement('div');
+    wrap.className='history-item';
+    const date=new Date(ent.startIso||Date.now());
+    const dateStr=date.toLocaleDateString(undefined,{month:'short',day:'numeric'});
+    const timeStr=date.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'});
+    const durStr=formatElapsed(ent.duration);
+    wrap.innerHTML=`<div class="meta"><span>${dateStr} • ${timeStr}</span><span>${ent.phase||'work'} • ${durStr}</span></div>`;
+    if(ent.intention){
+      const intent=document.createElement('div');
+      intent.className='intent';
+      intent.textContent=ent.intention;
+      wrap.appendChild(intent);
+    }
+    historyList.appendChild(wrap);
+  });
+  renderSparkline();
+}
+
+function renderSparkline(){
+  if(!historySpark)return;
+  const days=30;
+  const today=new Date();
+  const pts=[];
+  let max=0;
+  for(let i=days-1;i>=0;i--){
+    const d=new Date(today);d.setDate(d.getDate()-i);
+    const key=d.toISOString().slice(0,10);
+    const minutes=state.history
+      .filter(h=> (h.phase||'')==='work' && (h.startIso||'').slice(0,10)===key)
+      .reduce((s,h)=>s+Math.round((h.duration||0)/60),0);
+    max=Math.max(max,minutes);
+    pts.push({x:days-1-i,y:minutes});
+  }
+  const w=100,h=50;
+  if(max===0){historySpark.innerHTML='';return;}
+  const path=pts.map((p,idx)=>{
+    const x=(p.x/(days-1))*w;
+    const y=h- (p.y/max)*h;
+    return (idx===0?'M':'L')+x.toFixed(2)+','+y.toFixed(2);
+  }).join(' ');
+  historySpark.innerHTML=`<path d="${path}" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="2"/><path d="M0,${h} L${w},${h}" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>`;
+}
+
+function renderDeadline(){
+  if(!state.deadline||!state.deadline.iso){deadlineChip.textContent='No deadline';return;}
+  const target=new Date(state.deadline.iso);
+  if(Number.isNaN(target.getTime())){deadlineChip.textContent='No deadline';return;}
+  const now=new Date();
+  let diff=target-now;
+  const past=diff<=0;
+  diff=Math.max(0,diff);
+  const days=Math.floor(diff/86400000);
+  const hours=Math.floor((diff%86400000)/3600000);
+  const label=state.deadline.label||'Deadline';
+  if(past){deadlineChip.textContent=`${label} passed`;return;}
+  deadlineChip.textContent=`${label} in ${days}d ${hours}h`;
+}
+
+function applyVignette(val){
+  const v=Math.max(0,Math.min(90,val))/100; // convert to 0-0.9
+  document.documentElement.style.setProperty('--vignette-intensity',v.toFixed(2));
+  document.documentElement.style.setProperty('--vignette-top',Math.min(v,0.35).toFixed(2));
+}
+function updateClock(){
+  if(!state.showClock){clockDisplay.textContent='';return;}
+  const now=new Date();
+  const hh=String(now.getHours()).padStart(2,'0');
+  const mm=String(now.getMinutes()).padStart(2,'0');
+  clockDisplay.textContent=`${hh}:${mm}`;
+}
+function applyBlur(val){
+  const px=Math.max(0,Math.min(20,val));
+  document.documentElement.style.setProperty('--bg-blur',px+'px');
+}
+function applyDarken(val){
+  const alpha=Math.max(0,Math.min(80,val))/100; // 0-0.8
+  document.documentElement.style.setProperty('--bg-darken',alpha.toFixed(2));
 }
 
 // ─── THEME & BACKGROUND ───────────────────────────────────────────────────────
@@ -606,6 +949,25 @@ document.addEventListener('click', e => {
 // ─── TIMER ────────────────────────────────────────────────────────────────────
 let timerInterval = null;
 let bellCtx = null;
+let deadlineInterval = null;
+let clockInterval = null;
+let sessionStart = null;
+let sessionPhase = null;
+let sessionIntention = '';
+let intentionArmed = false;
+let intentionProvided = false;
+
+function startClockLoop(){
+  clearInterval(clockInterval);
+  if(!state.showClock){
+    clockDisplay.style.display='none';
+    clockDisplay.textContent='';
+    return;
+  }
+  clockDisplay.style.display='block';
+  updateClock();
+  clockInterval=setInterval(updateClock,60000);
+}
 
 function playBell() {
   if (!state.settings.sound) return;
@@ -637,6 +999,7 @@ function setTimerMode(mode) {
   state.timerMode = mode;
   state.running = false;
   clearInterval(timerInterval);
+  sessionStart=null;sessionPhase=null;sessionIntention='';intentionProvided=false;intentionArmed=false;
   document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
   document.getElementById('btn-start').textContent = 'Start';
   document.getElementById('btn-start').classList.add('active-btn');
@@ -673,13 +1036,25 @@ function updateSessionDots() {
 
 function startTimer() {
   if (state.running) { pauseTimer(); return; }
+  const needsIntention = state.timerMode === 'pomodoro' && state.timerPhase === 'work';
+  if(!state.running && sessionStart===null && needsIntention && !intentionProvided){
+    if(!intentionModal.classList.contains('show')) openIntentionPrompt();
+    return;
+  }
+  if(!state.running && sessionStart===null){
+    sessionStart=new Date();
+    sessionPhase=state.timerPhase;
+  }
   state.running = true;
   document.getElementById('btn-start').textContent = 'Pause';
   document.getElementById('btn-start').classList.remove('active-btn');
   if (bellCtx) bellCtx.resume();
   timerInterval = setInterval(() => {
     if (state.timerMode === 'free') { state.elapsed++; updateTimerDisplay(); }
-    else { state.timeLeft--; updateTimerDisplay(); if (state.timeLeft<=0) onTimerEnd(); }
+    else {
+      state.timeLeft--; updateTimerDisplay(); if (state.timeLeft<=0) onTimerEnd();
+      if (state.timerPhase==='work') { state.stats.focusSeconds++; renderStats(); renderGoal(); }
+    }
     saveState();
   }, 1000);
 }
@@ -692,6 +1067,7 @@ function pauseTimer() {
 
 function resetTimer() {
   pauseTimer();
+  sessionStart=null;sessionPhase=null;sessionIntention='';intentionProvided=false;intentionArmed=false;
   if (state.timerMode==='pomodoro') { state.timeLeft=state.settings.work*60; state.timerPhase='work'; timerLabel.textContent='Focus'; }
   else if (state.timerMode==='free') { state.elapsed=0; freeSub.textContent=''; }
   else { state.timeLeft=state.settings.short*60; }
@@ -700,9 +1076,15 @@ function resetTimer() {
 
 function onTimerEnd() {
   pauseTimer(); playBell();
+  if(sessionStart){
+    const dur=Math.max(1,Math.round((Date.now()-sessionStart.getTime())/1000));
+    addHistoryEntry(sessionStart.toISOString(),dur,sessionPhase||state.timerPhase,sessionIntention);
+  }
+  sessionStart=null;sessionPhase=null;sessionIntention='';intentionProvided=false;intentionArmed=false;
   if (state.timerMode === 'pomodoro') {
     if (state.timerPhase === 'work') {
       state.cycles = (state.cycles+1)%4; updateSessionDots();
+      state.stats.sessions += 1; renderStats(); renderGoal();
       if (state.cycles===0) {
         state.timerPhase='long'; state.timeLeft=state.settings.long*60;
         timerLabel.textContent='Long Break'; notify('Long break — '+state.settings.long+' min');
@@ -742,6 +1124,10 @@ function applyTimerSize(size) {
   state.timerSize = Math.max(48, Math.min(260, size));
   timerDisplay.style.fontSize = state.timerSize+'px';
   timerDisplay.style.letterSpacing = (state.timerSize>100?-2:-0.5)+'px';
+}
+function applyTimerOpacity(val){
+  state.timerOpacity = Math.max(20, Math.min(100, val));
+  timerWrap.style.opacity = state.timerOpacity/100;
 }
 
 timerWrap.addEventListener('mousedown', e => {
@@ -803,8 +1189,8 @@ window.onYouTubeIframeAPIReady = function() {
       playerVars:{autoplay:0,controls:0,start:ch.start,origin:location.origin||'https://localhost'},
       events:{
         onReady:(ev)=>{
-          ev.target.setVolume(state.volume);
-          if(ytQueue.length){const q=ytQueue.shift();if(q!==null)playChannel(q);}
+          applyChannelVolume(i);
+          while(ytQueue.length){const q=ytQueue.shift();applyChannelVolume(q);}
         }
       }
     });
@@ -817,32 +1203,78 @@ document.head.appendChild(ytTag);
 function playChannel(ch) {
   if(!audioEnabled){audioEnabled=true;audioHint.classList.remove('show');}
   if(!ytReady){ytQueue.push(ch);return;}
-  ytPlayers.forEach((p,i)=>{
-    if(!p||typeof p.pauseVideo!=='function')return;
-    if(i===ch){p.setVolume(state.volume);p.playVideo();}
-    else p.pauseVideo();
-  });
+  if(!ytPlayers[ch]||typeof ytPlayers[ch].setVolume!=='function')return;
+  state.musicMix[ch].on=true;
+  applyChannelVolume(ch);
 }
-function stopAllMusic(){ytPlayers.forEach(p=>{if(p&&typeof p.pauseVideo==='function')p.pauseVideo();});}
+function stopChannel(ch){
+  if(!ytPlayers[ch]||typeof ytPlayers[ch].pauseVideo!=='function')return;
+  ytPlayers[ch].pauseVideo();
+}
+function applyChannelVolume(ch){
+  if(!ytReady||!ytPlayers[ch]){ytQueue.push(ch);return;}
+  const mix=state.musicMix[ch]||{on:false,vol:state.volume};
+  const vol=Math.round((mix.vol||0)*(state.volume||0)/100);
+  const p=ytPlayers[ch];
+  if(typeof p.setVolume==='function')p.setVolume(vol);
+  if(mix.on){if(typeof p.playVideo==='function')p.playVideo();}
+  else{if(typeof p.pauseVideo==='function')p.pauseVideo();}
+}
+function applyAllChannelVolumes(){MUSIC.forEach((_,i)=>applyChannelVolume(i));}
 
 document.querySelectorAll('.music-btn').forEach(btn=>{
   btn.addEventListener('click',()=>{
     const ch=parseInt(btn.dataset.ch);
-    if(state.musicCh===ch){stopAllMusic();state.musicCh=-1;}
-    else{state.musicCh=ch;playChannel(ch);}
-    document.querySelectorAll('.music-btn').forEach((b,i)=>b.classList.toggle('playing',i===state.musicCh));
+    const mix=state.musicMix[ch];
+    mix.on=!mix.on;
+    if(mix.on) playChannel(ch); else stopChannel(ch);
+    document.querySelectorAll('.music-btn').forEach((b,i)=>b.classList.toggle('playing',state.musicMix[i]?.on));
     saveState();
   });
 });
 
+document.querySelectorAll('.music-vol').forEach(sl=>{
+  sl.addEventListener('input',e=>{
+    const ch=parseInt(e.target.dataset.ch);
+    state.musicMix[ch].vol=parseInt(e.target.value)||0;
+    applyChannelVolume(ch);
+    saveState();
+  });
+});
+
+vignetteSlider.addEventListener('input',e=>{
+  state.vignette=parseInt(e.target.value)||0;
+  applyVignette(state.vignette);
+  saveState();
+});
+blurSlider.addEventListener('input',e=>{
+  state.blur=parseInt(e.target.value)||0;
+  applyBlur(state.blur);
+  saveState();
+});
+darkenSlider.addEventListener('input',e=>{
+  state.darken=parseInt(e.target.value)||0;
+  applyDarken(state.darken);
+  saveState();
+});
+timerOpacitySlider.addEventListener('input',e=>{
+  applyTimerOpacity(parseInt(e.target.value)||100);
+  saveState();
+});
+
 function cycleMusicChannel(){
-  const next=(state.musicCh+2)%MUSIC.length;
-  document.querySelector(`.music-btn[data-ch="${next}"]`)?.click();
+  const next=(state.lastCycle||-1)+1>=MUSIC.length?0:(state.lastCycle||-1)+1;
+  state.lastCycle=next;
+  const mix=state.musicMix[next];
+  mix.on=!mix.on;
+  if(mix.on) playChannel(next); else stopChannel(next);
+  document.querySelectorAll('.music-btn').forEach((b,i)=>b.classList.toggle('playing',state.musicMix[i]?.on));
+  saveState();
 }
 
 volSlider.addEventListener('input',()=>{
   state.volume=parseInt(volSlider.value);
-  ytPlayers.forEach(p=>{if(p&&typeof p.setVolume==='function')p.setVolume(state.volume);});
+  applyAllChannelVolumes();
   saveState();
 });
 
@@ -864,6 +1296,7 @@ function isAnyPanelOpen(){
   return notepadPanel.classList.contains('open')||
          todoPanel.classList.contains('open')||
          settingsPanel.classList.contains('open')||
+         historyPanel.classList.contains('open')||
          themeBar.classList.contains('show');
 }
 document.addEventListener('mousemove',e=>{
@@ -873,9 +1306,21 @@ document.addEventListener('mousemove',e=>{
   scheduleHideUI();
 });
 
+// Intention modal helpers
+function openIntentionPrompt(){
+  intentionArmed=true; intentionProvided=false;
+  intentionModal.classList.add('show');
+  intentionInput.value='';
+  setTimeout(()=>intentionInput.focus(),50);
+}
+function closeIntentionPrompt(){
+  intentionModal.classList.remove('show');
+}
+
 // ─── ZEN MODE ─────────────────────────────────────────────────────────────────
 function toggleZen(){
   state.zenMode=!state.zenMode;
+  document.body.classList.toggle('zen',state.zenMode);
   if(state.zenMode){uiLayer.classList.add('hidden');closeAllPanels();themeBar.classList.remove('show');customPopup.classList.remove('show');document.getElementById('zen-hint').style.opacity='0';}
   else{showUI();document.getElementById('zen-hint').style.opacity='1';}
   document.getElementById('btn-zen').classList.toggle('active',state.zenMode);
@@ -886,7 +1331,8 @@ function closeAllPanels(){
   notepadPanel.classList.remove('open');
   todoPanel.classList.remove('open');
   settingsPanel.classList.remove('open');
-  ['btn-note','btn-todo','btn-settings'].forEach(id=>document.getElementById(id).classList.remove('active'));
+  historyPanel.classList.remove('open');
+  ['btn-note','btn-todo','btn-settings','btn-history'].forEach(id=>document.getElementById(id).classList.remove('active'));
 }
 function togglePanel(panel,btn){
   const was=panel.classList.contains('open');
@@ -900,12 +1346,17 @@ document.getElementById('btn-todo').addEventListener('click',()=>togglePanel(tod
 document.getElementById('todo-close').addEventListener('click',()=>{todoPanel.classList.remove('open');document.getElementById('btn-todo').classList.remove('active');});
 document.getElementById('btn-settings').addEventListener('click',()=>togglePanel(settingsPanel,document.getElementById('btn-settings')));
 document.getElementById('settings-close').addEventListener('click',()=>{settingsPanel.classList.remove('open');document.getElementById('btn-settings').classList.remove('active');});
+document.getElementById('btn-history').addEventListener('click',()=>{renderHistory();togglePanel(historyPanel,document.getElementById('btn-history'));});
+document.getElementById('history-close').addEventListener('click',()=>{historyPanel.classList.remove('open');document.getElementById('btn-history').classList.remove('active');});
 
 document.getElementById('btn-theme').addEventListener('click',()=>{
   themeBar.classList.toggle('show');
   document.getElementById('btn-theme').classList.toggle('active',themeBar.classList.contains('show'));
   if(!themeBar.classList.contains('show'))customPopup.classList.remove('show');
 });
+intentSaveBtn.addEventListener('click',()=>{sessionIntention=intentionInput.value.trim();intentionProvided=true;closeIntentionPrompt();startTimer();});
+intentSkipBtn.addEventListener('click',()=>{sessionIntention='';intentionProvided=true;closeIntentionPrompt();startTimer();});
+intentionInput.addEventListener('keydown',e=>{if(e.key==='Enter'){intentSaveBtn.click();} else if(e.key==='Escape'){intentSkipBtn.click();}});
 
 // ─── NOTEPAD ──────────────────────────────────────────────────────────────────
 let noteDebounce=null;
@@ -924,10 +1375,35 @@ function renderTodos(){
   state.todos.forEach((todo,i)=>{
     const el=document.createElement('div');
     el.className='todo-item'+(todo.done?' done':'');
-    el.innerHTML=`<div class="todo-check">${todo.done?'✓':''}</div><span class="todo-text">${escHtml(todo.text)}</span><button class="todo-del" data-i="${i}">✕</button>`;
-    el.querySelector('.todo-check').addEventListener('click',()=>toggleTodo(i));
-    el.querySelector('.todo-text').addEventListener('click',()=>toggleTodo(i));
-    el.querySelector('.todo-del').addEventListener('click',e=>{e.stopPropagation();deleteTodo(i);});
+
+    const row=document.createElement('div');
+    row.className='todo-row';
+    row.innerHTML=`<div class="todo-check">${todo.done?'✓':''}</div><span class="todo-text">${escHtml(todo.text)}</span><button class="todo-del" data-i="${i}">✕</button>`;
+    row.querySelector('.todo-check').addEventListener('click',()=>toggleTodo(i));
+    row.querySelector('.todo-text').addEventListener('click',()=>toggleTodo(i));
+    row.querySelector('.todo-del').addEventListener('click',e=>{e.stopPropagation();deleteTodo(i);});
+    el.appendChild(row);
+
+    const subList=document.createElement('div');
+    subList.className='sub-list';
+    (todo.children||[]).forEach((sub,j)=>{
+      const s=document.createElement('div');
+      s.className='sub-item'+(sub.done?' done':'');
+      s.innerHTML=`<div class="sub-check">${sub.done?'✓':''}</div><span class="sub-text">${escHtml(sub.text)}</span><button class="sub-del" data-j="${j}">✕</button>`;
+      s.querySelector('.sub-check').addEventListener('click',()=>toggleSub(i,j));
+      s.querySelector('.sub-text').addEventListener('click',()=>toggleSub(i,j));
+      s.querySelector('.sub-del').addEventListener('click',e=>{e.stopPropagation();deleteSub(i,j);});
+      subList.appendChild(s);
+    });
+    const subAdd=document.createElement('div');
+    subAdd.className='sub-add';
+    subAdd.innerHTML=`<input class="sub-input" data-i="${i}" placeholder="Add subtask…" maxlength="80"><button class="sub-add-btn" data-i="${i}">+</button>`;
+    const subInput=subAdd.querySelector('.sub-input');
+    subAdd.querySelector('.sub-add-btn').addEventListener('click',()=>addSubTodo(i,subInput.value));
+    subInput.addEventListener('keydown',e=>{if(e.key==='Enter'){addSubTodo(i,subInput.value);}});
+    subList.appendChild(subAdd);
+    el.appendChild(subList);
+
     todoList.appendChild(el);
   });
 }
@@ -936,14 +1412,27 @@ function deleteTodo(i){state.todos.splice(i,1);renderTodos();saveState();}
 function addTodo(){
   const val=document.getElementById('todo-input').value.trim();
   if(!val)return;
-  state.todos.push({text:val,done:false});
+  state.todos.push({text:val,done:false,children:[]});
   document.getElementById('todo-input').value='';
   renderTodos();saveState();
 }
+function addSubTodo(i,val){
+  const v=(val||'').trim();
+  if(!v)return;
+  state.todos[i].children=state.todos[i].children||[];
+  state.todos[i].children.push({text:v,done:false});
+  renderTodos();saveState();
+}
+function toggleSub(i,j){state.todos[i].children[j].done=!state.todos[i].children[j].done;renderTodos();saveState();}
+function deleteSub(i,j){state.todos[i].children.splice(j,1);renderTodos();saveState();}
 function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 document.getElementById('todo-add-btn').addEventListener('click',addTodo);
 document.getElementById('todo-input').addEventListener('keydown',e=>{if(e.key==='Enter')addTodo();});
-document.getElementById('todo-clear-btn').addEventListener('click',()=>{state.todos=state.todos.filter(t=>!t.done);renderTodos();saveState();});
+document.getElementById('todo-clear-btn').addEventListener('click',()=>{
+  state.todos.forEach(t=>{t.children=(t.children||[]).filter(c=>!c.done);});
+  state.todos=state.todos.filter(t=>!t.done);
+  renderTodos();saveState();
+});
 
 // ─── SETTINGS INPUTS ──────────────────────────────────────────────────────────
 ['work','short','long'].forEach(k=>{
@@ -955,12 +1444,41 @@ document.getElementById('todo-clear-btn').addEventListener('click',()=>{state.to
     saveState();
   });
 });
+document.getElementById('set-goal').addEventListener('change',()=>{
+  const v=parseInt(document.getElementById('set-goal').value)||360;
+  state.focusGoal=Math.max(10,Math.min(1440,v));
+  document.getElementById('set-goal').value=state.focusGoal;
+  renderGoal();
+  saveState();
+});
+document.getElementById('deadline-label').addEventListener('input',e=>{
+  state.deadline.label=e.target.value.trim();
+  renderDeadline();
+  saveState();
+});
+document.getElementById('deadline-time').addEventListener('change',e=>{
+  state.deadline.iso=e.target.value;
+  renderDeadline();
+  saveState();
+});
+document.getElementById('deadline-clear').addEventListener('click',()=>{
+  state.deadline={label:'',iso:''};
+  document.getElementById('deadline-label').value='';
+  document.getElementById('deadline-time').value='';
+  renderDeadline();
+  saveState();
+});
 ['auto','sound','dots'].forEach(k=>{
   document.getElementById('tog-'+k).addEventListener('change',()=>{
     const map={auto:'autoStart',sound:'sound',dots:'dots'};
     state.settings[map[k]]=document.getElementById('tog-'+k).checked;
     updateSessionDots(); saveState();
   });
+});
+document.getElementById('tog-clock').addEventListener('change',e=>{
+  state.showClock=e.target.checked;
+  startClockLoop();
+  saveState();
 });
 document.getElementById('btn-reset-pos').addEventListener('click',()=>{
   state.timerX=null;state.timerY=null;timerWrap.style.left='50%';timerWrap.style.top='50%';saveState();
@@ -985,6 +1503,7 @@ document.addEventListener('keydown',e=>{
     case 'n':case 'N':togglePanel(notepadPanel,document.getElementById('btn-note'));if(notepadPanel.classList.contains('open'))setTimeout(()=>notepadArea.focus(),400);break;
     case 't':case 'T':togglePanel(todoPanel,document.getElementById('btn-todo'));break;
     case 'm':case 'M':cycleMusicChannel();break;
+    case 'l':case 'L':renderHistory();togglePanel(historyPanel,document.getElementById('btn-history'));break;
     case 'Escape':
       if(customPopup.classList.contains('show'))customPopup.classList.remove('show');
       else if(themeBar.classList.contains('show')){themeBar.classList.remove('show');document.getElementById('btn-theme').classList.remove('active');}
@@ -996,10 +1515,23 @@ document.addEventListener('keydown',e=>{
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 loadState();
 buildThemeBar();
+startClockLoop();
 scheduleHideUI();
 
+if (deadlineInterval) clearInterval(deadlineInterval);
+deadlineInterval = setInterval(renderDeadline,30000);
+
 setTimeout(()=>{audioHint.classList.add('show');setTimeout(()=>audioHint.classList.remove('show'),2500);},800);
-document.querySelectorAll('.music-btn').forEach((b,i)=>b.classList.toggle('playing',i===state.musicCh));
+document.querySelectorAll('.music-btn').forEach((b,i)=>b.classList.toggle('playing',state.musicMix[i]?.on));
+applyAllChannelVolumes();
+renderStats();
+renderGoal();
+renderDeadline();
+renderHistory();
+applyVignette(state.vignette);
+applyBlur(state.blur);
+applyDarken(state.darken);
+applyTimerOpacity(state.timerOpacity);
 timerWrap.style.transform='translate(-50%,-50%)';
 </script>
 </body>
