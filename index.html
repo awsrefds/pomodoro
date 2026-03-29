@@ -32,11 +32,17 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
 #cursor.hidden{opacity:0}
 
 /* Background */
-#bg{position:fixed;inset:0;z-index:0;background-size:cover;background-position:center;background-repeat:no-repeat;transition:background-image 1s ease}
+#bg,#bg-alt{position:fixed;inset:0;z-index:0;background-size:cover;background-position:center;background-repeat:no-repeat;transition:opacity 1s ease;opacity:1;pointer-events:none}
+#bg-alt{opacity:0}
 #darken-overlay{position:fixed;inset:0;z-index:1;background:rgba(0,0,0,var(--bg-darken));pointer-events:none;transition:background 0.3s ease}
 #vignette{position:fixed;inset:0;z-index:2;background:radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,var(--vignette-intensity)) 100%),linear-gradient(to bottom, rgba(0,0,0,var(--vignette-top)) 0%, transparent 30%, transparent 70%, rgba(0,0,0,var(--vignette-intensity)) 100%);pointer-events:none;transition:background 0.3s ease}
 #blur-overlay{position:fixed;inset:0;z-index:3;backdrop-filter:blur(var(--bg-blur));transition:backdrop-filter 0.3s ease;pointer-events:none}
 .zen #ui-layer,.zen #top-metrics,.zen #stats-bar,.zen #streak-badge,.zen #theme-bar,.zen #custom-url-popup,.zen #audio-hint,.zen #notify-flash,.zen #zen-hint,.zen #cursor,.zen #bottom-bar,.zen #history-panel,.zen #notepad-panel,.zen #todo-panel,.zen #settings-panel{display:none!important}
+.zen #shortcut-overlay,.zen #intention-modal{display:none!important}
+
+.session-pulse{animation:session-pulse 0.9s ease}
+
+@keyframes session-pulse{0%{transform:translate(-50%,-50%) scale(1);}50%{transform:translate(-50%,-50%) scale(1.03);}100%{transform:translate(-50%,-50%) scale(1);}}
 
 /* Timer */
 #timer-wrap{position:fixed;z-index:20;display:flex;flex-direction:column;align-items:center;gap:6px;transform:translate(-50%,-50%);cursor:grab;left:50%;top:50%}
@@ -64,7 +70,7 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
 #ui-layer > *{pointer-events:auto}
 
 /* Bottom bar */
-#bottom-bar{position:absolute;bottom:40px;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:0 32px;gap:16px}
+#bottom-bar{position:absolute;bottom:56px;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:0 32px;gap:16px}
 
 /* Music controls */
 #music-wrap{display:flex;flex-direction:column;gap:10px}
@@ -77,8 +83,8 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
 #music-channels input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.8);cursor:pointer;transition:transform 0.2s}
 #music-channels input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.25)}
 #volume-row{display:flex;align-items:center;gap:8px}
-#volume-icon{color:var(--text-faint);font-size:11px;cursor:pointer;transition:color 0.2s}
-#volume-icon:hover{color:var(--text-dim)}
+#volume-icon{color:var(--text-faint);font-size:11px;cursor:pointer;transition:color 0.2s;border:1px solid rgba(255,255,255,1);background:rgba(255,255,255,0.14);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;line-height:1}
+#volume-icon:hover{color:var(--text-dim);background:rgba(255,255,255,0.2)}
 #vol-slider{-webkit-appearance:none;appearance:none;width:90px;height:2px;background:rgba(255,255,255,0.2);border-radius:2px;outline:none;cursor:pointer}
 #vol-slider::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.7);cursor:pointer;transition:transform 0.2s}
 #vol-slider::-webkit-slider-thumb:hover{transform:scale(1.3)}
@@ -165,6 +171,9 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
 #notepad-panel{width:420px;max-width:80vw}
 #history-panel{width:360px}
 #history-panel .history-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-right:4px}
+.floating-panel{top:50%;left:50%;right:auto;height:auto;transform:translate(-50%,-50%);border-left:none;min-height:220px}
+#shortcut-overlay{display:none;pointer-events:auto;width:360px;max-width:90vw;z-index:50}
+#shortcut-overlay.open{display:flex}
 .history-item{background:var(--glass);border:1px solid var(--glass-border);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
 .history-item .meta{font-size:11px;letter-spacing:1px;color:var(--text-faint);display:flex;justify-content:space-between}
 .history-item .intent{font-size:13px;color:var(--text);font-weight:300;word-break:break-word}
@@ -249,6 +258,7 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
 
 <div id="cursor"></div>
 <div id="bg"></div>
+<div id="bg-alt"></div>
 <div id="darken-overlay"></div>
 <div id="vignette"></div>
 <div id="blur-overlay"></div>
@@ -314,9 +324,9 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
       <button class="icon-btn" id="btn-theme" title="Themes">◈</button>
       <button class="icon-btn" id="btn-todo" title="Tasks (T)">☰</button>
       <button class="icon-btn" id="btn-note" title="Notes (N)">✎</button>
-      <button class="icon-btn" id="btn-history" title="History (L)">🕒</button>
-      <button class="icon-btn" id="btn-settings" title="Settings">⊙</button>
-      <button class="icon-btn" id="btn-zen" title="Zen mode (H)">◎</button>
+      <button class="icon-btn" id="btn-history" title="History (H)">🕒</button>
+      <button class="icon-btn" id="btn-settings" title="Settings (S)">⊙</button>
+      <button class="icon-btn" id="btn-zen" title="Zen mode (Z)">◎</button>
     </div>
   </div>
 </div>
@@ -389,6 +399,25 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
     <svg id="history-spark" class="sparkline" viewBox="0 0 100 50" preserveAspectRatio="none"></svg>
   </div>
   <div class="history-list" id="history-list"></div>
+</div>
+
+<!-- Shortcuts overlay -->
+<div id="shortcut-overlay" class="panel floating-panel">
+  <div class="panel-header">
+    <span class="panel-title">Shortcuts</span>
+    <button class="panel-close" id="shortcut-close">✕</button>
+  </div>
+  <div style="flex:1;overflow-y:auto;line-height:1.8;font-size:13px;color:var(--text-dim)">
+    <div><strong style="color:var(--text)">Space</strong> — Start/Pause</div>
+    <div><strong style="color:var(--text)">Z</strong> — Zen mode</div>
+    <div><strong style="color:var(--text)">N</strong> — Notepad</div>
+    <div><strong style="color:var(--text)">T</strong> — Tasks</div>
+    <div><strong style="color:var(--text)">H</strong> — History</div>
+    <div><strong style="color:var(--text)">S</strong> — Settings</div>
+    <div><strong style="color:var(--text)">M</strong> — Cycle music</div>
+    <div><strong style="color:var(--text)">I</strong> — Toggle this sheet</div>
+    <div><strong style="color:var(--text)">Esc</strong> — Close panels</div>
+  </div>
 </div>
 
 <!-- Settings panel -->
@@ -623,6 +652,7 @@ let state = {
 
 // ─── DOM REFS ─────────────────────────────────────────────────────────────────
 const bg             = document.getElementById('bg');
+const bgAlt          = document.getElementById('bg-alt');
 const timerWrap      = document.getElementById('timer-wrap');
 const timerDisplay   = document.getElementById('timer-display');
 const timerLabel     = document.getElementById('timer-label');
@@ -634,6 +664,7 @@ const notepadPanel   = document.getElementById('notepad-panel');
 const todoPanel      = document.getElementById('todo-panel');
 const settingsPanel  = document.getElementById('settings-panel');
 const historyPanel   = document.getElementById('history-panel');
+const shortcutOverlay= document.getElementById('shortcut-overlay');
 const notepadArea    = document.getElementById('notepad-area');
 const todoList       = document.getElementById('todo-list');
 const historyList    = document.getElementById('history-list');
@@ -891,7 +922,7 @@ function setTheme(id, save) {
   state.theme = id;
   const t = THEMES.find(x => x.id === id);
   if (!t) return;
-  bg.style.backgroundImage = `url(${unsplashBg(t.code)})`;
+  swapBackground(unsplashBg(t.code));
   document.querySelectorAll('.theme-thumb').forEach(el => {
     const label = el.querySelector('.theme-thumb-label');
     el.classList.toggle('active', label && label.textContent === t.name);
@@ -900,10 +931,19 @@ function setTheme(id, save) {
 }
 
 function applyDirectBg(url) {
-  bg.style.backgroundImage = `url(${url})`;
+  swapBackground(url);
   document.querySelectorAll('.theme-thumb').forEach(el => el.classList.remove('active'));
   const customBtn = document.getElementById('custom-url-btn');
   if (customBtn) customBtn.style.borderColor = 'rgba(120,200,255,0.7)';
+}
+
+function swapBackground(url){
+  const next = activeBg===0?bgAlt:bg;
+  const current = activeBg===0?bg:bgAlt;
+  next.style.backgroundImage = `url(${url})`;
+  next.style.opacity = '1';
+  current.style.opacity = '0';
+  activeBg = activeBg===0?1:0;
 }
 
 // ─── CUSTOM URL ───────────────────────────────────────────────────────────────
@@ -956,6 +996,7 @@ let sessionPhase = null;
 let sessionIntention = '';
 let intentionArmed = false;
 let intentionProvided = false;
+let activeBg=0;
 
 function startClockLoop(){
   clearInterval(clockInterval);
@@ -1065,6 +1106,11 @@ function pauseTimer() {
   document.getElementById('btn-start').classList.add('active-btn');
 }
 
+function pulseTimerEnd(){
+  timerWrap.classList.add('session-pulse');
+  setTimeout(()=>timerWrap.classList.remove('session-pulse'),900);
+}
+
 function resetTimer() {
   pauseTimer();
   sessionStart=null;sessionPhase=null;sessionIntention='';intentionProvided=false;intentionArmed=false;
@@ -1076,6 +1122,7 @@ function resetTimer() {
 
 function onTimerEnd() {
   pauseTimer(); playBell();
+  pulseTimerEnd();
   if(sessionStart){
     const dur=Math.max(1,Math.round((Date.now()-sessionStart.getTime())/1000));
     addHistoryEntry(sessionStart.toISOString(),dur,sessionPhase||state.timerPhase,sessionIntention);
@@ -1296,6 +1343,7 @@ function isAnyPanelOpen(){
   return notepadPanel.classList.contains('open')||
          todoPanel.classList.contains('open')||
          settingsPanel.classList.contains('open')||
+         shortcutOverlay.classList.contains('open')||
          historyPanel.classList.contains('open')||
          themeBar.classList.contains('show');
 }
@@ -1332,12 +1380,19 @@ function closeAllPanels(){
   todoPanel.classList.remove('open');
   settingsPanel.classList.remove('open');
   historyPanel.classList.remove('open');
+  shortcutOverlay.classList.remove('open');
   ['btn-note','btn-todo','btn-settings','btn-history'].forEach(id=>document.getElementById(id).classList.remove('active'));
 }
 function togglePanel(panel,btn){
   const was=panel.classList.contains('open');
   closeAllPanels();
   if(!was){panel.classList.add('open');btn.classList.add('active');}
+}
+
+function toggleShortcuts(){
+  const open=shortcutOverlay.classList.contains('open');
+  closeAllPanels();
+  if(!open){shortcutOverlay.classList.add('open');}
 }
 
 document.getElementById('btn-note').addEventListener('click',()=>{togglePanel(notepadPanel,document.getElementById('btn-note'));if(notepadPanel.classList.contains('open'))notepadArea.focus();});
@@ -1348,6 +1403,7 @@ document.getElementById('btn-settings').addEventListener('click',()=>togglePanel
 document.getElementById('settings-close').addEventListener('click',()=>{settingsPanel.classList.remove('open');document.getElementById('btn-settings').classList.remove('active');});
 document.getElementById('btn-history').addEventListener('click',()=>{renderHistory();togglePanel(historyPanel,document.getElementById('btn-history'));});
 document.getElementById('history-close').addEventListener('click',()=>{historyPanel.classList.remove('open');document.getElementById('btn-history').classList.remove('active');});
+document.getElementById('shortcut-close').addEventListener('click',()=>shortcutOverlay.classList.remove('open'));
 
 document.getElementById('btn-theme').addEventListener('click',()=>{
   themeBar.classList.toggle('show');
@@ -1499,11 +1555,15 @@ document.addEventListener('keydown',e=>{
   if(e.target===notepadArea||e.target===document.getElementById('todo-input')||e.target===customInput||e.target.tagName==='INPUT')return;
   switch(e.key){
     case ' ':e.preventDefault();startTimer();break;
-    case 'h':case 'H':toggleZen();break;
+    case 'z':case 'Z':toggleZen();break;
     case 'n':case 'N':togglePanel(notepadPanel,document.getElementById('btn-note'));if(notepadPanel.classList.contains('open'))setTimeout(()=>notepadArea.focus(),400);break;
     case 't':case 'T':togglePanel(todoPanel,document.getElementById('btn-todo'));break;
     case 'm':case 'M':cycleMusicChannel();break;
-    case 'l':case 'L':renderHistory();togglePanel(historyPanel,document.getElementById('btn-history'));break;
+    case 'h':case 'H':renderHistory();togglePanel(historyPanel,document.getElementById('btn-history'));break;
+    case 's':case 'S':togglePanel(settingsPanel,document.getElementById('btn-settings'));break;
+    case 'i':case 'I':
+      toggleShortcuts();
+      break;
     case 'Escape':
       if(customPopup.classList.contains('show'))customPopup.classList.remove('show');
       else if(themeBar.classList.contains('show')){themeBar.classList.remove('show');document.getElementById('btn-theme').classList.remove('active');}
