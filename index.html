@@ -112,10 +112,11 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
 .mode-btn.active{background:rgba(255,255,255,0.14);color:var(--accent)}
 
 /* Right controls */
-#right-controls{display:flex;gap:10px;align-items:center}
+#right-controls{display:flex;gap:10px;align-items:center;margin-top:18px}
 .icon-btn{background:var(--glass);border:1px solid var(--glass-border);color:var(--text-dim);width:36px;height:36px;border-radius:50%;cursor:pointer;backdrop-filter:blur(12px);transition:all 0.2s;display:flex;align-items:center;justify-content:center;font-size:14px;position:relative}
 .icon-btn:hover{color:var(--text);border-color:rgba(255,255,255,0.3);background:rgba(255,255,255,0.14)}
 .icon-btn.active{color:var(--accent);border-color:rgba(255,255,255,0.45);background:rgba(255,255,255,0.16)}
+#btn-history{color:var(--text-dim);filter:none}
 
 /* Panels */
 .panel{position:fixed;top:0;right:0;height:100%;width:320px;background:rgba(12,12,12,0.72);backdrop-filter:blur(24px);border-left:1px solid rgba(255,255,255,0.08);z-index:40;display:flex;flex-direction:column;transform:translateX(100%);transition:transform 0.4s cubic-bezier(0.16,1,0.3,1);padding:28px 24px}
@@ -181,9 +182,17 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
 .history-pill{background:var(--glass);border:1px solid var(--glass-border);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
 .history-pill .label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text-faint)}
 .history-pill .value{font-size:15px;font-weight:600;color:var(--text)}
-.sparkline-wrap{margin-bottom:14px}
-.sparkline-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text-faint);margin-bottom:6px}
+.sparkline-wrap{margin-bottom:14px;display:flex;flex-direction:column;gap:8px}
+.sparkline-header{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.sparkline-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text-faint)}
+.sparkline-toggle{display:flex;gap:6px}
+.spark-btn{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);color:var(--text-dim);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:5px 8px;border-radius:8px;cursor:pointer;transition:all 0.2s}
+.spark-btn:hover{color:var(--text);border-color:rgba(255,255,255,0.3)}
+.spark-btn.active{color:var(--accent);border-color:rgba(255,255,255,0.45);background:rgba(255,255,255,0.12)}
 .sparkline{width:100%;height:50px}
+.heatmap-wrap{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.heatmap-grid{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,12px);gap:3px;align-items:start;padding-top:2px;max-width:100%}
+.heatmap-cell{width:12px;height:12px;border-radius:3px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.05)}
 .setting-section{margin-bottom:24px}
 .setting-label{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--text-faint);margin-bottom:12px;display:block}
 .setting-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
@@ -326,7 +335,7 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
     </div>
     <div id="right-controls">
       <button class="icon-btn" id="btn-theme" title="Themes">◈</button>
-      <button class="icon-btn" id="btn-todo" title="Tasks (T)">☰</button>
+        <button class="icon-btn" id="btn-todo" title="Tasks (T)">☰</button>
       <button class="icon-btn" id="btn-note" title="Notes (N)">✎</button>
       <button class="icon-btn" id="btn-history" title="History (H)">🕒</button>
       <button class="icon-btn" id="btn-settings" title="Settings (S)">⊙</button>
@@ -355,7 +364,7 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
   </div>
 </div>
 
-<div id="zen-hint">H — Zen Mode</div>
+<div id="zen-hint">Z - Zen Mode</div>
 
 <!-- Theme bar -->
 <div id="theme-bar"></div>
@@ -395,7 +404,7 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
 <!-- History panel -->
 <div class="panel" id="history-panel">
   <div class="panel-header">
-    <span class="panel-title">Session History</span>
+    <span class="panel-title">Analytics & History</span>
     <button class="panel-close" id="history-close">✕</button>
   </div>
   <div class="history-summary" id="history-summary">
@@ -411,10 +420,33 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
       <span class="label">Days tracked</span>
       <span class="value" id="history-days">0</span>
     </div>
+    <div class="history-pill">
+      <span class="label">Avg session</span>
+      <span class="value" id="history-avg">0m</span>
+    </div>
+    <div class="history-pill">
+      <span class="label">Best day</span>
+      <span class="value" id="history-best-day">—</span>
+    </div>
+    <div class="history-pill">
+      <span class="label">Best streak</span>
+      <span class="value" id="history-best-streak">0d</span>
+    </div>
   </div>
   <div class="sparkline-wrap">
-    <div class="sparkline-title" id="history-range">All time</div>
+    <div class="sparkline-header">
+      <div class="sparkline-title" id="history-range">All time</div>
+      <div class="sparkline-toggle" id="history-range-toggle">
+        <button class="spark-btn" data-spark-range="week">7d</button>
+        <button class="spark-btn" data-spark-range="month">30d</button>
+        <button class="spark-btn" data-spark-range="all">All</button>
+      </div>
+    </div>
     <svg id="history-spark" class="sparkline" viewBox="0 0 100 50" preserveAspectRatio="none"></svg>
+  </div>
+  <div class="heatmap-wrap">
+    <div class="sparkline-title">Heatmap (recent weeks)</div>
+    <div id="history-heatmap" class="heatmap-grid"></div>
   </div>
   <div class="history-list" id="history-list"></div>
 </div>
@@ -658,6 +690,7 @@ let state = {
   history: [],
   focusGoal: 360,
   deadline: { label:'', iso:'' },
+  sparkRange: 'all',
   vignette: 55,
   blur: 0,
   darken: 0,
@@ -707,6 +740,11 @@ const historyTotalEl = document.getElementById('history-total');
 const historyCountEl = document.getElementById('history-count');
 const historyDaysEl  = document.getElementById('history-days');
 const historyRangeLabel = document.getElementById('history-range');
+const historyAvgEl   = document.getElementById('history-avg');
+const historyBestDayEl = document.getElementById('history-best-day');
+const historyBestStreakEl = document.getElementById('history-best-streak');
+const historyRangeBtns = Array.from(document.querySelectorAll('[data-spark-range]'));
+const historyHeatmap   = document.getElementById('history-heatmap');
 const vignetteSlider = document.getElementById('set-vignette');
 const blurSlider     = document.getElementById('set-blur');
 const darkenSlider   = document.getElementById('set-darken');
@@ -735,6 +773,7 @@ function loadState() {
   }));
   normalizeStats();
   state.deadline = state.deadline || {label:'',iso:''};
+  state.sparkRange = state.sparkRange || 'all';
   state.vignette = state.vignette ?? 55;
   state.blur = state.blur ?? 0;
   state.darken = state.darken ?? 0;
@@ -818,6 +857,22 @@ function formatMinutesCompact(mins){
   return `${Math.round(mins)}m`;
 }
 
+function buildWorkDayMap(list){
+  const map=new Map();
+  let earliest=Date.now();
+  list.forEach(h=>{
+    const key=(h.startIso||'').slice(0,10);
+    if(!key) return;
+    const d=new Date(h.startIso||Date.now());
+    d.setHours(0,0,0,0);
+    if(d.getTime()<earliest)earliest=d.getTime();
+    if((h.phase||'')==='work'){
+      map.set(key,(map.get(key)||0)+Math.round((h.duration||0)/60));
+    }
+  });
+  return {map,earliest};
+}
+
 function addHistoryEntry(startIso,durationSec,phase,intention){
   const entry={startIso,duration:Math.max(1,Math.round(durationSec)),phase:intention?phase:phase,intention:intention||''};
   state.history.push(entry);
@@ -829,10 +884,12 @@ function renderHistory(){
   if(!historyList)return;
   historyList.innerHTML='';
   const items=[...state.history].reverse();
-  updateHistorySummary(items);
+  const workDay=buildWorkDayMap(state.history);
+  updateHistorySummary(items, workDay);
   if(!items.length){
     historyList.innerHTML='<div style="color:var(--text-faint);font-size:12px">No sessions logged yet.</div>';
-    renderSparkline();
+    renderSparkline(workDay);
+    renderHeatmap(workDay);
     return;
   }
   items.forEach(ent=>{
@@ -851,48 +908,84 @@ function renderHistory(){
     }
     historyList.appendChild(wrap);
   });
-  renderSparkline();
+  renderSparkline(workDay);
+  renderHeatmap(workDay);
 }
 
-function updateHistorySummary(items){
+function updateHistorySummary(items, workDay){
   if(!historyTotalEl||!historyCountEl||!historyDaysEl)return;
   if(!items.length){
     historyTotalEl.textContent='0m';
     historyCountEl.textContent='0';
     historyDaysEl.textContent='0';
+    if(historyAvgEl)historyAvgEl.textContent='0m';
+    if(historyBestDayEl)historyBestDayEl.textContent='—';
+    if(historyBestStreakEl)historyBestStreakEl.textContent='0d';
     return;
   }
-  const focusMinutes = items.filter(h=>(h.phase||'')==='work').reduce((s,h)=>s+Math.round((h.duration||0)/60),0);
+  const workSessions = items.filter(h=>(h.phase||'')==='work');
+  const focusMinutes = workSessions.reduce((s,h)=>s+Math.round((h.duration||0)/60),0);
   const allMinutes = items.reduce((s,h)=>s+Math.round((h.duration||0)/60),0);
-  const daysTracked = new Set(items.map(h=>(h.startIso||'').slice(0,10)).filter(Boolean)).size;
+  const daysTracked = (workDay?.map?.size) || new Set(items.map(h=>(h.startIso||'').slice(0,10)).filter(Boolean)).size;
+  const avgSessionSec = workSessions.length ? workSessions.reduce((s,h)=>s+(h.duration||0),0)/workSessions.length : 0;
+  const avgMinutes = avgSessionSec/60;
+  const bestDayEntry = (()=>{
+    if(!workDay||!workDay.map||!workDay.map.size)return null;
+    let bestKey=null,bestVal=0;
+    workDay.map.forEach((v,k)=>{if(v>bestVal){bestVal=v;bestKey=k;}});
+    return bestKey?{key:bestKey,minutes:bestVal}:null;
+  })();
+  const bestStreak = computeBestStreak(workDay?.map||new Map());
   historyTotalEl.textContent = formatMinutesCompact(focusMinutes || allMinutes || 0);
   historyCountEl.textContent = String(items.length);
   historyDaysEl.textContent = String(daysTracked);
+  if(historyAvgEl) historyAvgEl.textContent = formatMinutesCompact(avgMinutes || 0);
+  if(historyBestDayEl){
+    if(bestDayEntry){
+      const d=new Date(bestDayEntry.key);
+      historyBestDayEl.textContent = `${d.toLocaleDateString(undefined,{month:'short',day:'numeric'})} · ${formatMinutesCompact(bestDayEntry.minutes)}`;
+    } else {
+      historyBestDayEl.textContent='—';
+    }
+  }
+  if(historyBestStreakEl) historyBestStreakEl.textContent = `${bestStreak}d`;
 }
 
-function renderSparkline(){
-  if(!historySpark)return;
-  const workDays=new Map();
-  let earliestTs=Date.now();
-  state.history.forEach(h=>{
-    const key=(h.startIso||'').slice(0,10);
-    if(!key) return;
-    const t=new Date(h.startIso||Date.now()).setHours(0,0,0,0);
-    if(t<earliestTs)earliestTs=t;
-    if((h.phase||'')==='work'){
-      workDays.set(key,(workDays.get(key)||0)+Math.round((h.duration||0)/60));
-    }
+function computeBestStreak(map){
+  if(!map||map.size===0)return 0;
+  const keys=[...map.keys()].sort();
+  let best=0,cur=0,prev=null;
+  keys.forEach(k=>{
+    const t=new Date(k).setHours(0,0,0,0);
+    if(prev!==null && t-prev===86400000){cur+=1;}else{cur=1;}
+    prev=t;
+    if(map.get(k)>0) best=Math.max(best,cur);
   });
+  return best;
+}
+
+function updateSparkButtons(){
+  historyRangeBtns.forEach(btn=>btn.classList.toggle('active',btn.dataset.sparkRange===state.sparkRange));
+}
+
+function renderSparkline(workDay){
+  if(!historySpark)return;
+  const workDays=workDay?.map||new Map();
+  const earliestTs=workDay?.earliest||Date.now();
   if(workDays.size===0){
     historySpark.innerHTML='';
     if(historyRangeLabel) historyRangeLabel.textContent='All time';
+    updateSparkButtons();
     return;
   }
-  const start=new Date(earliestTs);
-  const today=new Date();
-  start.setHours(0,0,0,0);
-  today.setHours(0,0,0,0);
-  const days=Math.max(1,Math.round((today-start)/86400000)+1);
+  const today=new Date(); today.setHours(0,0,0,0);
+  let start=new Date(earliestTs); start.setHours(0,0,0,0);
+  let days=Math.max(1,Math.round((today-start)/86400000)+1);
+  if(state.sparkRange==='week'){
+    days=7; start=new Date(today); start.setDate(today.getDate()-6);
+  } else if(state.sparkRange==='month'){
+    days=30; start=new Date(today); start.setDate(today.getDate()-29);
+  }
   const pts=[];
   let max=0;
   for(let i=0;i<days;i++){
@@ -904,7 +997,7 @@ function renderSparkline(){
     pts.push({x:i,y:minutes});
   }
   const w=100,h=50;
-  if(max===0){historySpark.innerHTML='';return;}
+  if(max===0){historySpark.innerHTML='';updateSparkButtons();return;}
   const denom=Math.max(1,days-1);
   const path=pts.map((p,idx)=>{
     const x=(p.x/denom)*w;
@@ -913,9 +1006,40 @@ function renderSparkline(){
   }).join(' ');
   const startLabel=start.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
   if(historyRangeLabel){
-    historyRangeLabel.textContent = days<=31 ? `Last ${days} days` : `Since ${startLabel}`;
+    if(state.sparkRange==='week') historyRangeLabel.textContent='Last 7 days';
+    else if(state.sparkRange==='month') historyRangeLabel.textContent='Last 30 days';
+    else historyRangeLabel.textContent = days<=31 ? `Last ${days} days` : `Since ${startLabel}`;
   }
+  updateSparkButtons();
   historySpark.innerHTML=`<path d="${path}" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="2"/><path d="M0,${h} L${w},${h}" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>`;
+}
+
+function renderHeatmap(workDay){
+  if(!historyHeatmap)return;
+  const map=workDay?.map||new Map();
+  if(map.size===0){historyHeatmap.innerHTML='';return;}
+  const days=126; // 18 weeks ~ recent overview
+  const end=new Date(); end.setHours(0,0,0,0);
+  const start=new Date(end); start.setDate(end.getDate()-(days-1));
+  const cells=[];
+  let max=0;
+  for(let i=0;i<days;i++){
+    const d=new Date(start);
+    d.setDate(start.getDate()+i);
+    const key=d.toISOString().slice(0,10);
+    const minutes=map.get(key)||0;
+    max=Math.max(max,minutes);
+    cells.push({date:d,minutes});
+  }
+  const maxSafe=Math.max(1,max);
+  historyHeatmap.innerHTML=cells.map(c=>{
+    const level=c.minutes/maxSafe;
+    const alpha=level===0?0.08:0.25+0.45*level;
+    const color=`rgba(120,200,255,${alpha.toFixed(2)})`;
+    const border=level===0?'rgba(255,255,255,0.05)':'rgba(120,200,255,0.5)';
+    const title=`${c.date.toLocaleDateString(undefined,{month:'short',day:'numeric'})}: ${Math.round(c.minutes)}m`;
+    return `<div class="heatmap-cell" title="${title}" style="background:${color};border-color:${border}"></div>`;
+  }).join('');
 }
 
 function renderDeadline(){
@@ -1491,6 +1615,15 @@ document.getElementById('settings-close').addEventListener('click',()=>{settings
 document.getElementById('btn-history').addEventListener('click',()=>{renderHistory();togglePanel(historyPanel,document.getElementById('btn-history'));});
 document.getElementById('history-close').addEventListener('click',()=>{historyPanel.classList.remove('open');document.getElementById('btn-history').classList.remove('active');});
 document.getElementById('shortcut-close').addEventListener('click',()=>shortcutOverlay.classList.remove('open'));
+historyRangeBtns.forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    state.sparkRange=btn.dataset.sparkRange||'all';
+    saveState();
+    const workDay=buildWorkDayMap(state.history);
+    renderSparkline(workDay);
+    renderHeatmap(workDay);
+  });
+});
 
 document.getElementById('btn-theme').addEventListener('click',()=>{
   themeBar.classList.toggle('show');
