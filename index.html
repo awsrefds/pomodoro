@@ -416,6 +416,7 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
     <div><strong style="color:var(--text)">S</strong> — Settings</div>
     <div><strong style="color:var(--text)">M</strong> — Cycle music</div>
     <div><strong style="color:var(--text)">I</strong> — Toggle this sheet</div>
+    <div><strong style="color:var(--text)">F</strong> — Fullscreen</div>
     <div><strong style="color:var(--text)">Esc</strong> — Close panels</div>
   </div>
 </div>
@@ -602,9 +603,9 @@ function unsplashThumb(code) { return `https://unsplash.com/photos/${code}/downl
 
 // ─── MUSIC ────────────────────────────────────────────────────────────────────
 const MUSIC = [
-  { id:'PIBMuKXsvKE', label:'Carti Beats',  start:1991 },
+  { id:'PIBMuKXsvKE', label:'Carti Beats',  start:0    },
   { id:'CLeZyIID9Bo', label:'LoFi Hip Hop', start:0    },
-  { id:'CHFif_y2TyM', label:'Rain & Fire',  start:861  },
+  { id:'CHFif_y2TyM', label:'Rain & Fire',  start:0  },
 ];
 
 // ─── FONTS ────────────────────────────────────────────────────────────────────
@@ -997,6 +998,7 @@ let sessionIntention = '';
 let intentionArmed = false;
 let intentionProvided = false;
 let activeBg=0;
+let fullscreenLocked=false;
 
 function startClockLoop(){
   clearInterval(clockInterval);
@@ -1354,6 +1356,18 @@ document.addEventListener('mousemove',e=>{
   scheduleHideUI();
 });
 
+// Fullscreen
+function toggleFullscreen(){
+  if(fullscreenLocked)return;
+  fullscreenLocked=true;
+  const done=()=>{fullscreenLocked=false;};
+  if(!document.fullscreenElement){
+    document.documentElement.requestFullscreen().catch(done).then(done);
+  }else{
+    document.exitFullscreen().catch(done).then(done);
+  }
+}
+
 // Intention modal helpers
 function openIntentionPrompt(){
   intentionArmed=true; intentionProvided=false;
@@ -1563,6 +1577,9 @@ document.addEventListener('keydown',e=>{
     case 's':case 'S':togglePanel(settingsPanel,document.getElementById('btn-settings'));break;
     case 'i':case 'I':
       toggleShortcuts();
+      break;
+    case 'f':case 'F':
+      toggleFullscreen();
       break;
     case 'Escape':
       if(customPopup.classList.contains('show'))customPopup.classList.remove('show');
