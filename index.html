@@ -309,6 +309,14 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
           <span class="font-name">Ghost</span>
         </div>
       </div>
+      <div class="setting-row" style="margin-top:12px">
+        <label>Font weight</label>
+        <input class="setting-input" id="timer-weight" type="range" min="100" max="900" step="50" value="200" style="width:150px">
+      </div>
+      <div class="setting-row">
+        <label>Font color</label>
+        <input class="setting-input" id="timer-color" type="color" value="#ffffff" style="padding:0 4px;height:32px">
+      </div>
     </div>
 
     <div class="setting-section">
@@ -367,39 +375,38 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
 
 <script>
 // ─── THEMES ──────────────────────────────────────────────────────────────────
-// Uses direct images.unsplash.com CDN URLs (source.unsplash.com was deprecated).
-// Format: https://images.unsplash.com/photo-{id}?w=1920&q=80&fit=crop
-// Thumb:  https://images.unsplash.com/photo-{id}?w=400&q=60&fit=crop
+// Uses Unsplash download endpoints (force=true) keyed by the short photo code.
 const THEMES = [
-  { id:'tuscan',        name:'Tuscany',        photoId:'photo-1506905925346-21bda4d32df4' },
-  { id:'clouds',        name:'Clouds',         photoId:'photo-1504608524841-42584120d1cc' },
-  { id:'forest',        name:'Forest',         photoId:'photo-1448375240586-882707db888b' },
-  { id:'forest2',       name:'Forest II',      photoId:'photo-1542601906897-ecd5f2ac9c2e' },
-  { id:'nyc',           name:'NYC Night',      photoId:'photo-1534430480872-3498386e7856' },
-  { id:'tokyo-tower',   name:'Tokyo Tower',    photoId:'photo-1540959733332-eab4deabeeaf' },
-  { id:'tokyo-night',   name:'Tokyo Night',    photoId:'photo-1513407030348-c983a97b98d8' },
-  { id:'shanghai',      name:'Shanghai',       photoId:'photo-1474181487882-5abf3f0ba6c2' },
-  { id:'fireplace',     name:'Fireplace',      photoId:'photo-1508193638397-1c4234db14d8' },
-  { id:'winter',        name:'Winter Cabin',   photoId:'photo-1418985991508-e47386d96a71' },
-  { id:'sunset-clouds', name:'Sunset Clouds',  photoId:'photo-1499346030926-9a72daac6c63' },
-  { id:'ocean-sunset',  name:'Ocean Sunset',   photoId:'photo-1505118380757-91f5f5632de0' },
-  { id:'study',         name:'Study',          photoId:'photo-1456513080510-7bf3a84b82f8' },
-  { id:'library',       name:'Library',        photoId:'photo-1507003211169-0a1dd7228f2d' },
-  { id:'dark-academia', name:'Dark Academia',  photoId:'photo-1519682337058-a94d519337bc' },
-  { id:'beach',         name:'Beach',          photoId:'photo-1507525428034-b723cf961d3e' },
-  { id:'zen',           name:'Zen',            photoId:'photo-1512916194211-3f2b7f5f7de3' },
-  { id:'autumn',        name:'Autumn',         photoId:'photo-1508739773434-c26b3d09e071' },
-  { id:'rainy',         name:'Rainy Day',      photoId:'photo-1519692933481-e162a57d6721' },
-  { id:'night-sky',     name:'Night Sky',      photoId:'photo-1446941611757-91d2c3bd3d45' },
-  { id:'night-sky2',    name:'Night Sky II',   photoId:'photo-1419242902214-272b3f66ee7a' },
-  { id:'minimal',       name:'Minimal',        photoId:'photo-1558618666-fcd25c85cd64' },
-  { id:'mountain',      name:'Mountain',       photoId:'photo-1464822759023-fed622ff2c3b' },
-  { id:'desert',        name:'Desert',         photoId:'photo-1509316785289-025f5b846b35' },
-  { id:'lake',          name:'Lake',           photoId:'photo-1439066615861-d1af74d74000' },
+  { id:'shanghai',       name:'Shanghai',        code:'oV9hp8wXkPE' },
+  { id:'forest',         name:'Forest',          code:'3Kv48NS4WUU' },
+  { id:'forest2',        name:'Forest 2',        code:'sp-p7uuT0tw' },
+  { id:'clouds',         name:'Clouds',          code:'LtWFFVi1RXQ' },
+  { id:'tuscan',         name:'Tuscan',          code:'fJWYwHWYQpY' },
+  { id:'fireplace',      name:'Fireplace',       code:'DI8Bf6K1134' },
+  { id:'winter',         name:'Winter Cabin',    code:'OgcJIKRnRC8' },
+  { id:'nyc',            name:'New York',        code:'fT6-YkB0nfg' },
+  { id:'tokyo-tower',    name:'Tokyo Eiffel',    code:'3-esk8zPwPY' },
+  { id:'tokyo-night',    name:'Tokyo Night',     code:'eeUmYVTkFg4' },
+  { id:'sunset-clouds',  name:'Sunset Clouds',   code:'quS7YOKdiXA' },
+  { id:'ocean-sunset',   name:'Ocean Sunset',    code:'kbYD_aSAeg8' },
+  { id:'study',          name:'Study',           code:'Eti6ph51H4A' },
+  { id:'library',        name:'Library',         code:'HsHybQQHgWo' },
+  { id:'dark-academia',  name:'Dark Academia',   code:'vTKLujPJecw' },
+  { id:'beach',          name:'Beach',           code:'TWoL-QCZubY' },
+  { id:'zen',            name:'Zen',             code:'P-yzuyWFEIk' },
+  { id:'peace',          name:'Peace',           code:'7AcMUSYRZpU' },
+  { id:'autumn',         name:'Autumn',          code:'RwHv7LgeC7s' },
+  { id:'rainy',          name:'Rainy Day',       code:'_cqRjq4rp0M' },
+  { id:'night-sky',      name:'Night Sky',       code:'Jztmx9yqjBw' },
+  { id:'night-sky2',     name:'Night Sky 2',     code:'uj-w-v7OFT4' },
+  { id:'liquid-glass',   name:'Liquid Glass',    code:'PZKe_hQSaJc' },
+  { id:'black-wave',     name:'Black Wave',      code:'ciO5L8pin8A' },
+  { id:'minimal',        name:'Minimal',         code:'HkyWIigb5bg' },
 ];
 
-function unsplashBg(photoId)    { return `https://images.unsplash.com/${photoId}?w=1920&q=80&fit=crop&auto=format`; }
-function unsplashThumb(photoId) { return `https://images.unsplash.com/${photoId}?w=400&q=60&fit=crop&auto=format`; }
+// Build direct Unsplash image/download URLs from the short photo code.
+function unsplashBg(code)    { return `https://unsplash.com/photos/${code}/download?force=true&w=1920`; }
+function unsplashThumb(code) { return `https://unsplash.com/photos/${code}/download?force=true&w=400`; }
 
 // ─── MUSIC ────────────────────────────────────────────────────────────────────
 const MUSIC = [
@@ -430,6 +437,8 @@ let state = {
   timerX: null,
   timerY: null,
   timerSize: 120,
+  timerWeight: 200,
+  timerColor: '#ffffff',
   font: 'default',
   musicCh: -1,
   volume: 70,
@@ -467,12 +476,17 @@ function loadState() {
     if (s) Object.assign(state, JSON.parse(s));
     state.running = false;
   } catch(e) {}
+  // Default fallbacks for newly added fields
+  state.timerWeight = state.timerWeight || (FONTS[state.font]?.weight || 200);
+  state.timerColor = state.timerColor || '#ffffff';
   document.getElementById('set-work').value  = state.settings.work;
   document.getElementById('set-short').value = state.settings.short;
   document.getElementById('set-long').value  = state.settings.long;
   document.getElementById('tog-auto').checked  = state.settings.autoStart;
   document.getElementById('tog-sound').checked = state.settings.sound;
   document.getElementById('tog-dots').checked  = state.settings.dots;
+  document.getElementById('timer-weight').value = state.timerWeight;
+  document.getElementById('timer-color').value = state.timerColor;
   volSlider.value    = state.volume;
   notepadArea.value  = state.notepad;
   updateWordCount();
@@ -500,7 +514,7 @@ function buildThemeBar() {
     const el = document.createElement('div');
     el.className = 'theme-thumb' + (t.id === state.theme && !state.customBg ? ' active' : '');
     // Set a placeholder colour while the thumbnail loads
-    el.style.backgroundImage = `url(${unsplashThumb(t.photoId)})`;
+    el.style.backgroundImage = `url(${unsplashThumb(t.code)})`;
     el.title = t.name;
     el.innerHTML = `<span class="theme-thumb-label">${t.name}</span>`;
     el.addEventListener('click', () => {
@@ -534,7 +548,7 @@ function setTheme(id, save) {
   state.theme = id;
   const t = THEMES.find(x => x.id === id);
   if (!t) return;
-  bg.style.backgroundImage = `url(${unsplashBg(t.photoId)})`;
+  bg.style.backgroundImage = `url(${unsplashBg(t.code)})`;
   document.querySelectorAll('.theme-thumb').forEach(el => {
     const label = el.querySelector('.theme-thumb-label');
     el.classList.toggle('active', label && label.textContent === t.name);
@@ -550,10 +564,19 @@ function applyDirectBg(url) {
 }
 
 // ─── CUSTOM URL ───────────────────────────────────────────────────────────────
+// Accepts direct image URLs or Unsplash photo pages and converts them to a download URL.
 function extractImageUrl(raw) {
-  raw = raw.trim();
-  if (!raw) return null;
-  if (/^https?:\/\/.+/i.test(raw)) return raw;
+  const val = (raw || '').trim();
+  if (!val) return null;
+
+  const unsplash = val.match(/unsplash\.com\/photos\/([^/?]+)/i);
+  if (unsplash && unsplash[1]) {
+    const slug = unsplash[1];
+    const code = slug.split('-').pop();
+    if (code) return unsplashBg(code);
+  }
+
+  if (/^https?:\/\/.+/i.test(val)) return val;
   return null;
 }
 
@@ -743,15 +766,29 @@ timerWrap.addEventListener('wheel', e=>{e.preventDefault();applyTimerSize(state.
 function applyFont(f) {
   state.font=f;
   const fd=FONTS[f]||FONTS.default;
+  const weight = state.timerWeight || fd.weight;
   timerDisplay.style.fontFamily=fd.family;
-  timerDisplay.style.fontWeight=fd.weight;
+  timerDisplay.style.fontWeight=weight;
   timerDisplay.style.opacity=fd.opacity||1;
+  timerDisplay.style.color=state.timerColor||'var(--accent)';
 }
 function selectFontOpt(f) {
   document.querySelectorAll('.font-opt').forEach(el=>el.classList.toggle('selected',el.dataset.font===f));
 }
 document.querySelectorAll('.font-opt').forEach(el=>{
   el.addEventListener('click',()=>{applyFont(el.dataset.font);selectFontOpt(el.dataset.font);saveState();});
+});
+
+// Custom font weight & color controls
+document.getElementById('timer-weight').addEventListener('input',e=>{
+  state.timerWeight=parseInt(e.target.value)||200;
+  applyFont(state.font);
+  saveState();
+});
+document.getElementById('timer-color').addEventListener('input',e=>{
+  state.timerColor=e.target.value||'#ffffff';
+  applyFont(state.font);
+  saveState();
 });
 
 // ─── MUSIC ────────────────────────────────────────────────────────────────────
