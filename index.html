@@ -159,13 +159,18 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
 .mode-btn:hover{color:var(--text)}
 .mode-btn.active{background:rgba(255,255,255,0.14);color:var(--accent)}
 #right-controls{display:flex;gap:10px;align-items:center;margin-top:18px}
+#zen-controls{display:flex;flex-direction:column;gap:10px;align-items:center;margin-top:18px}
 .icon-btn{background:var(--glass);border:1px solid var(--glass-border);color:var(--text-dim);width:36px;height:36px;border-radius:50%;cursor:pointer;backdrop-filter:blur(12px);transition:all 0.2s;display:flex;align-items:center;justify-content:center;font-size:14px;position:relative}
 .icon-btn:hover{color:var(--text);border-color:rgba(255,255,255,0.3);background:rgba(255,255,255,0.14)}
 .icon-btn.active{color:var(--accent);border-color:rgba(255,255,255,0.45);background:rgba(255,255,255,0.16)}
+#btn-leaderboard{width:46px;height:46px;border-color:rgba(255,200,100,0.6);background:rgba(255,200,100,0.1);font-size:18px}
+#btn-leaderboard:hover{border-color:rgba(255,200,100,0.9);background:rgba(255,200,100,0.18);color:rgba(255,200,100,1)}
+#btn-leaderboard.active{color:rgba(255,200,100,1);border-color:rgba(255,200,100,0.9);background:rgba(255,200,100,0.25)}
 
 /* ── PANELS ──────────────────────────────────────────────────────────────── */
 .panel{position:fixed;top:0;right:0;height:100%;width:320px;background:rgba(12,12,12,0.72);backdrop-filter:blur(24px);border-left:1px solid rgba(255,255,255,0.08);z-index:40;display:flex;flex-direction:column;transform:translateX(100%);transition:transform 0.4s cubic-bezier(0.16,1,0.3,1);padding:28px 24px}
 .panel.open{transform:translateX(0)}
+#timer-wrap.with-panel{margin-right:320px;transition:margin-right 0.4s cubic-bezier(0.16,1,0.3,1)}
 .panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
 .panel-title{font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--text-dim);font-weight:400}
 .panel-close{background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:16px;transition:color 0.2s;line-height:1}
@@ -281,10 +286,13 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
 .settings-action-btn:hover{border-color:rgba(255,255,255,0.3);color:var(--text)}
 
 /* ── THEME BAR ───────────────────────────────────────────────────────────── */
-#theme-bar{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:35;display:flex;gap:8px;align-items:center;background:rgba(0,0,0,0.5);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:10px 14px;opacity:0;pointer-events:none;transition:opacity 0.3s;max-width:90vw;overflow-x:auto}
+#theme-bar-wrap{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:35;display:flex;gap:12px;align-items:center;background:rgba(0,0,0,0.5);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:10px 14px;opacity:0;pointer-events:none;transition:opacity 0.3s;max-width:90vw}
+#theme-bar-wrap.show{opacity:1;pointer-events:auto}
+#theme-bar{display:flex;gap:8px;align-items:center;overflow-x:auto;flex:1}
 #theme-bar::-webkit-scrollbar{height:2px}
 #theme-bar::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.2);border-radius:2px}
-#theme-bar.show{opacity:1;pointer-events:auto}
+#theme-close{background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:14px;transition:color 0.2s;line-height:1;padding:4px;flex-shrink:0}
+#theme-close:hover{color:var(--text)}
 .theme-thumb{width:54px;height:40px;border-radius:8px;cursor:pointer;border:2px solid transparent;transition:all 0.2s;background-size:cover;background-position:center;flex-shrink:0;position:relative;overflow:hidden;background-color:#1a1a1a}
 .theme-thumb:hover{transform:scale(1.05);border-color:rgba(255,255,255,0.4)}
 .theme-thumb.active{border-color:white}
@@ -350,15 +358,7 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
 <div id="subject-modal" class="hidden">
   <div class="subject-eyebrow">Session Setup</div>
   <div class="subject-greeting" id="subject-greeting">What are you studying?</div>
-  <div id="calloway-grid" class="calloway-grid" style="display:none">
-    <button class="subject-btn" data-subject="Applications">Applications</button>
-    <button class="subject-btn" data-subject="Literature">Literature</button>
-    <button class="subject-btn" data-subject="Human Biology">Human Biology</button>
-    <button class="subject-btn" data-subject="Psychology">Psychology</button>
-    <button class="subject-btn" data-subject="English">English</button>
-    <button class="subject-btn" data-subject="Health Studies">Health Studies</button>
-  </div>
-  <div id="subject-free-wrap" style="display:none;width:100%;max-width:520px">
+  <div id="subject-free-wrap" style="width:100%;max-width:520px">
     <input type="text" id="subject-free-input" placeholder="Subject…" maxlength="60">
   </div>
   <div class="subject-detail-wrap">
@@ -379,6 +379,18 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
   </div>
 </div>
 
+<!-- ── SESSION NOTES MODAL ─────────────────────────────────────────────────── -->
+<div id="session-notes-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(16px);display:none;align-items:center;justify-content:center;padding:16px;z-index:60">
+  <div style="width:360px;max-width:90vw;background:rgba(20,20,20,0.9);border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:18px 18px 14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 20px 50px rgba(0,0,0,0.3)">
+    <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--text-faint)">Session Notes</div>
+    <textarea id="session-notes-input" placeholder="What did you do? (optional)" maxlength="300" style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px 12px;color:var(--text);font-family:var(--ui-font);font-size:14px;outline:none;resize:vertical;min-height:80px;font-weight:300"></textarea>
+    <div id="session-notes-actions" style="display:flex;justify-content:flex-end;gap:10px">
+      <button class="intent-btn" id="session-notes-skip">Skip</button>
+      <button class="intent-btn" id="session-notes-save">Save & Continue</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── TIMER ──────────────────────────────────────────────────────────────── -->
 <div id="timer-wrap">
   <div id="session-dots"></div>
@@ -393,6 +405,7 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
   <div id="timer-btns">
     <button class="timer-btn active-btn" id="btn-start">Start</button>
     <button class="timer-btn" id="btn-reset">Reset</button>
+    <button class="timer-btn" id="btn-submit" style="display:none">Submit</button>
   </div>
   <div id="timer-size-btns">
     <button class="size-btn" id="btn-smaller">−</button>
@@ -434,11 +447,13 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
     </div>
     <div id="right-controls">
       <button class="icon-btn" id="btn-theme" title="Themes">◈</button>
-      <button class="icon-btn" id="btn-leaderboard" title="Leaderboard (L)">⊞</button>
       <button class="icon-btn" id="btn-todo" title="Tasks (T)">☰</button>
       <button class="icon-btn" id="btn-note" title="Notes (N)">✎</button>
       <button class="icon-btn" id="btn-history" title="History (H)">🕒</button>
       <button class="icon-btn" id="btn-settings" title="Settings (S)">⊙</button>
+    </div>
+    <div id="zen-controls">
+      <button class="icon-btn" id="btn-leaderboard" title="Leaderboard (L)">👑</button>
       <button class="icon-btn" id="btn-zen" title="Zen mode (Z)">◎</button>
     </div>
   </div>
@@ -467,7 +482,10 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
 <button id="zen-subject-btn">◈ change subject</button>
 
 <div id="zen-hint">Z — Zen Mode</div>
-<div id="theme-bar"></div>
+<div id="theme-bar-wrap">
+  <div id="theme-bar"></div>
+  <button id="theme-close" title="Close" style="display:none">✕</button>
+</div>
 
 <div id="custom-url-popup">
   <span class="popup-label">Custom Background</span>
@@ -657,6 +675,7 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
     started_at timestamptz not null,
     duration_seconds integer not null,
     phase text default 'work',
+    notes text default '',
     created_at timestamptz default now()
   );
   alter table focus_sessions enable row level security;
@@ -735,7 +754,9 @@ const timerLabel      = document.getElementById('timer-label');
 const freeSub         = document.getElementById('free-sublabel');
 const sessionDots     = document.getElementById('session-dots');
 const uiLayer         = document.getElementById('ui-layer');
+const themeBarWrap    = document.getElementById('theme-bar-wrap');
 const themeBar        = document.getElementById('theme-bar');
+const themeClose      = document.getElementById('theme-close');
 const notepadPanel    = document.getElementById('notepad-panel');
 const todoPanel       = document.getElementById('todo-panel');
 const settingsPanel   = document.getElementById('settings-panel');
@@ -754,6 +775,8 @@ const notifyFlash     = document.getElementById('notify-flash');
 const volSlider       = document.getElementById('vol-slider');
 const customPopup     = document.getElementById('custom-url-popup');
 const customInput     = document.getElementById('custom-url-input');
+const sessionNotesModal = document.getElementById('session-notes-modal');
+const sessionNotesInput = document.getElementById('session-notes-input');
 const statsTodayEl    = document.getElementById('stats-today');
 const statsStreakEl   = document.getElementById('stats-streak');
 const goalFill        = document.getElementById('goal-fill');
@@ -823,42 +846,19 @@ document.getElementById('splash-confirm').addEventListener('click', () => {
 });
 
 // ─── SUBJECT MODAL ────────────────────────────────────────────────────────────
-let selectedSubject = currentSubject || '';
 
 function showSubjectModal() {
   subjectEl.classList.remove('hidden');
   document.getElementById('subject-greeting').textContent = `Hey ${currentUser}, what are you studying?`;
-  const isCalloway = currentUser === 'Calloway';
-  document.getElementById('calloway-grid').style.display = isCalloway ? 'grid' : 'none';
-  document.getElementById('subject-free-wrap').style.display = isCalloway ? 'none' : 'block';
-  if (!isCalloway) {
-    const fi = document.getElementById('subject-free-input');
-    fi.value = currentSubject || '';
-    fi.placeholder = 'What subject? (e.g. Chemistry)';
-  }
-  // Pre-select saved subject for Calloway
-  if (isCalloway && currentSubject) {
-    document.querySelectorAll('.subject-btn').forEach(b => {
-      b.classList.toggle('selected', b.dataset.subject === currentSubject);
-    });
-    selectedSubject = currentSubject;
-  }
+  const fi = document.getElementById('subject-free-input');
+  fi.value = currentSubject || '';
+  fi.placeholder = 'What subject? (e.g. Chemistry)';
   document.getElementById('subject-detail-input').value = currentSubjectDetail || '';
   setTimeout(() => {
-    if (!isCalloway) document.getElementById('subject-free-input').focus();
-    else document.getElementById('subject-detail-input').focus();
+    fi.focus();
   }, 100);
 }
 function hideSubjectModal() { subjectEl.classList.add('hidden'); }
-
-document.querySelectorAll('.subject-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.subject-btn').forEach(b => b.classList.remove('selected'));
-    btn.classList.add('selected');
-    selectedSubject = btn.dataset.subject;
-    document.getElementById('subject-detail-input').focus();
-  });
-});
 
 document.getElementById('subject-start-btn').addEventListener('click', confirmAndStart);
 document.getElementById('subject-detail-input').addEventListener('keydown', e => {
@@ -866,26 +866,17 @@ document.getElementById('subject-detail-input').addEventListener('keydown', e =>
 });
 
 function confirmAndStart() {
-  const isCalloway = currentUser === 'Calloway';
-  if (isCalloway) {
-    if (!selectedSubject) { notify('Pick a subject first'); return; }
-    currentSubject = selectedSubject;
-  } else {
-    const v = document.getElementById('subject-free-input').value.trim();
-    if (!v) { notify('Enter a subject first'); return; }
-    currentSubject = v;
-  }
+  const v = document.getElementById('subject-free-input').value.trim();
+  if (!v) { notify('Enter a subject first'); return; }
+  currentSubject = v;
   currentSubjectDetail = document.getElementById('subject-detail-input').value.trim();
   localStorage.setItem('focus_subject', currentSubject);
   localStorage.setItem('focus_subject_detail', currentSubjectDetail);
   updateSubjectDisplay();
   hideSubjectModal();
-  // Auto-start after brief delay
+  // Just load interface, don't auto-start timer
   sessionIntention = buildIntentionLabel();
   intentionProvided = true;
-  setTimeout(() => {
-    if (!state.running) startTimer();
-  }, 600);
 }
 
 function buildIntentionLabel() {
@@ -910,7 +901,7 @@ subjectDisplay.addEventListener('click', () => {
 });
 
 // ─── SUPABASE SESSION LOGGING ─────────────────────────────────────────────────
-async function logSession(startIso, durationSec, phase) {
+async function logSession(startIso, durationSec, phase, intention, notes) {
   if (!currentUser) return;
   try {
     const {error} = await sb.from('focus_sessions').insert({
@@ -920,6 +911,7 @@ async function logSession(startIso, durationSec, phase) {
       started_at: startIso,
       duration_seconds: Math.max(1, Math.round(durationSec)),
       phase: phase || 'work',
+      notes: notes || '',
     });
     if (error) console.warn('Supabase log error:', error.message);
   } catch(e) {
@@ -1119,10 +1111,10 @@ function buildWorkDayMap(list){
   });
   return{map,earliest};
 }
-function addHistoryEntry(startIso,durationSec,phase,intention){
-  const entry={startIso,duration:Math.max(1,Math.round(durationSec)),phase,intention:intention||''};
+function addHistoryEntry(startIso,durationSec,phase,intention,notes){
+  const entry={startIso,duration:Math.max(1,Math.round(durationSec)),phase,intention:intention||'',notes:notes||''};
   state.history.push(entry);saveState();renderHistory();
-  logSession(startIso,durationSec,phase).catch(()=>{});
+  logSession(startIso,durationSec,phase,intention,notes).catch(()=>{});
 }
 function renderHistory(){
   if(!historyList)return;
@@ -1130,6 +1122,7 @@ function renderHistory(){
   const items=[...state.history].reverse();
   const workDay=buildWorkDayMap(state.history);
   updateHistorySummary(items,workDay);
+  renderSubjectBreakdown();
   if(!items.length){
     historyList.innerHTML='<div style="color:var(--text-faint);font-size:12px">No sessions logged yet.</div>';
     renderSparkline(workDay);renderHeatmap(workDay);return;
@@ -1142,6 +1135,7 @@ function renderHistory(){
     const durStr=formatElapsed(ent.duration);
     wrap.innerHTML=`<div class="meta"><span>${dateStr} • ${timeStr}</span><span>${ent.phase||'work'} • ${durStr}</span></div>`;
     if(ent.intention){const intent=document.createElement('div');intent.className='intent';intent.textContent=ent.intention;wrap.appendChild(intent);}
+    if(ent.notes){const note=document.createElement('div');note.style.cssText='font-size:12px;color:var(--text-dim);font-style:italic;margin-top:6px;line-height:1.4';note.textContent=ent.notes;wrap.appendChild(note);}
     historyList.appendChild(wrap);
   });
   renderSparkline(workDay);renderHeatmap(workDay);
@@ -1217,6 +1211,43 @@ function renderDeadline(){
   if(past){deadlineChip.textContent=`${label} passed`;return;}
   deadlineChip.textContent=`${label} in ${days}d ${hours}h`;
 }
+async function renderSubjectBreakdown(){
+  try{
+    const now=new Date();now.setHours(0,0,0,0);
+    const {data,error}=await sb.from('focus_sessions').select('subject,duration_seconds').eq('user_name',currentUser).eq('phase','work').gte('created_at',now.toISOString());
+    if(error||!data||!data.length)return;
+    const subjectTotals={};
+    data.forEach(s=>{
+      const subj=(s.subject||'Other').trim()||'Other';
+      subjectTotals[subj]=(subjectTotals[subj]||0)+Math.round((s.duration_seconds||0)/60);
+    });
+    const sorted=Object.entries(subjectTotals).sort((a,b)=>b[1]-a[1]);
+    if(!sorted.length)return;
+    const reportEl=document.createElement('div');
+    reportEl.style.cssText='margin-bottom:14px;padding:10px;background:var(--glass);border:1px solid var(--glass-border);border-radius:10px';
+    reportEl.innerHTML='<div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--text-faint);margin-bottom:8px">Subject Breakdown (Today)</div>';
+    const chart=document.createElement('div');chart.style.cssText='display:flex;gap:2px;align-items:flex-end;height:40px';
+    const maxVal=Math.max(...sorted.map(s=>s[1]));
+    const colors=['rgba(120,200,255,0.8)','rgba(100,255,180,0.8)','rgba(255,150,120,0.8)','rgba(200,150,255,0.8)','rgba(255,200,100,0.8)'];
+    sorted.forEach((s,i)=>{
+      const bar=document.createElement('div');
+      const h=maxVal>0?(s[1]/maxVal)*100:0;
+      bar.style.cssText=`flex:1;height:${h}%;background:${colors[i%colors.length]};border-radius:2px;cursor:pointer;transition:opacity 0.2s`;
+      bar.title=`${s[0]}: ${s[1]}m`;
+      bar.addEventListener('mouseover',()=>bar.style.opacity='0.6');
+      bar.addEventListener('mouseout',()=>bar.style.opacity='1');
+      chart.appendChild(bar);
+    });
+    reportEl.appendChild(chart);
+    const legend=document.createElement('div');legend.style.cssText='display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;font-size:11px;color:var(--text-dim)';
+    sorted.forEach((s,i)=>{
+      const item=document.createElement('div');item.innerHTML=`<span style="display:inline-block;width:8px;height:8px;background:${colors[i%colors.length]};border-radius:1px;margin-right:4px;vertical-align:middle"></span>${s[0]} ${s[1]}m`;
+      legend.appendChild(item);
+    });
+    reportEl.appendChild(legend);
+    historyList.appendChild(reportEl);
+  }catch(e){}
+}
 function applyVignette(val){const v=Math.max(0,Math.min(90,val))/100;document.documentElement.style.setProperty('--vignette-intensity',v.toFixed(2));document.documentElement.style.setProperty('--vignette-top',Math.min(v,0.35).toFixed(2));}
 function updateClock(){if(!state.showClock){clockDisplay.textContent='';return;}const now=new Date();clockDisplay.textContent=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;}
 function applyBlur(val){document.documentElement.style.setProperty('--bg-blur',Math.max(0,Math.min(20,val))+'px');}
@@ -1271,6 +1302,7 @@ let timerInterval=null,bellCtx=null,deadlineInterval=null,clockInterval=null;
 let sessionStart=null,sessionPhase=null,sessionIntention='',intentionProvided=false;
 let freeSessionStart=null;
 let fullscreenLocked=false;
+let pendingSessionData=null;  // Store session data for notes modal
 
 function startClockLoop(){
   clearInterval(clockInterval);
@@ -1323,6 +1355,7 @@ let timerEditActive = false;
 timerDisplay.addEventListener('click', () => {
   if (state.running) return;
   if (timerEditActive) return;
+  if (state.timerMode === 'free') return; // Prevent editing free timer
   timerEditActive = true;
   timerEditInput.value = timerDisplay.textContent;
   timerEditInput.style.display = 'block';
@@ -1332,6 +1365,7 @@ timerDisplay.addEventListener('click', () => {
   timerEditInput.style.color = timerDisplay.style.color || 'var(--accent)';
   timerEditInput.style.letterSpacing = timerDisplay.style.letterSpacing;
   timerDisplay.style.opacity = '0';
+  document.getElementById('btn-submit').style.display = 'inline-block';
   timerEditInput.focus();
   timerEditInput.select();
 });
@@ -1356,6 +1390,7 @@ function commitTimerEdit() {
   }
   timerEditInput.style.display = 'none';
   timerDisplay.style.opacity = '1';
+  document.getElementById('btn-submit').style.display = 'none';
   timerEditActive = false;
 }
 
@@ -1364,6 +1399,7 @@ timerEditInput.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     timerEditInput.style.display = 'none';
     timerDisplay.style.opacity = '1';
+    document.getElementById('btn-submit').style.display = 'none';
     timerEditActive = false;
   }
 });
@@ -1415,7 +1451,16 @@ function onTimerEnd(){
   pauseTimer();playBell();pulseTimerEnd();
   if(sessionStart){
     const dur=Math.max(1,Math.round((Date.now()-sessionStart.getTime())/1000));
-    addHistoryEntry(sessionStart.toISOString(),dur,sessionPhase||state.timerPhase,buildIntentionLabel());
+    const phase=sessionPhase||state.timerPhase;
+    // For work sessions, show notes modal instead of directly adding entry
+    if(phase==='work'&&state.timerMode==='pomodoro'){
+      pendingSessionData={startIso:sessionStart.toISOString(),dur,phase,intention:buildIntentionLabel()};
+      sessionNotesInput.value='';
+      sessionNotesModal.style.display='flex';
+    }else{
+      // For non-work sessions, add directly
+      addHistoryEntry(sessionStart.toISOString(),dur,phase,buildIntentionLabel());
+    }
   }
   sessionStart=null;sessionPhase=null;intentionProvided=false;freeSessionStart=null;
   if(state.timerMode==='pomodoro'){
@@ -1436,9 +1481,27 @@ function notify(msg){notifyFlash.textContent=msg;notifyFlash.classList.add('show
 
 // ─── TIMER DRAG & RESIZE ──────────────────────────────────────────────────────
 let dragging=false,dragOffX=0,dragOffY=0;
+function clampTimerToViewport(persist=false){
+  if(state.timerX===null||state.timerY===null)return;
+  const r=timerWrap.getBoundingClientRect();
+  const vw=window.innerWidth||document.documentElement.clientWidth;
+  const vh=window.innerHeight||document.documentElement.clientHeight;
+  let minX=r.width/2,maxX=vw-r.width/2,minY=r.height/2,maxY=vh-r.height/2;
+  if(minX>maxX){minX=maxX=vw/2;}
+  if(minY>maxY){minY=maxY=vh/2;}
+  const nextX=Math.min(Math.max(state.timerX,minX),maxX);
+  const nextY=Math.min(Math.max(state.timerY,minY),maxY);
+  if(nextX!==state.timerX||nextY!==state.timerY){
+    state.timerX=nextX;state.timerY=nextY;
+    timerWrap.style.left=state.timerX+'px';timerWrap.style.top=state.timerY+'px';
+    if(persist)saveState();
+  }
+}
 function applyPosition(){
   if(state.timerX!==null&&state.timerY!==null){timerWrap.style.left=state.timerX+'px';timerWrap.style.top=state.timerY+'px';}
   else{timerWrap.style.left='50%';timerWrap.style.top='50%';}
+  timerWrap.style.transform='translate(-50%,-50%)';
+  clampTimerToViewport(false);
 }
 function applyTimerSize(size){
   state.timerSize=Math.max(48,Math.min(520,size));
@@ -1446,6 +1509,7 @@ function applyTimerSize(size){
   timerDisplay.style.letterSpacing=(state.timerSize>100?-2:-0.5)+'px';
   timerEditInput.style.fontSize=state.timerSize+'px';
   timerEditInput.style.letterSpacing=(state.timerSize>100?-2:-0.5)+'px';
+  clampTimerToViewport(false);
 }
 function applyTimerOpacity(val){state.timerOpacity=Math.max(20,Math.min(100,val));timerWrap.style.opacity=state.timerOpacity/100;}
 timerWrap.addEventListener('mousedown',e=>{
@@ -1457,10 +1521,11 @@ document.addEventListener('mousemove',e=>{
   if(!dragging)return;state.timerX=e.clientX-dragOffX;state.timerY=e.clientY-dragOffY;
   timerWrap.style.left=state.timerX+'px';timerWrap.style.top=state.timerY+'px';timerWrap.style.transform='translate(-50%,-50%)';
 });
-document.addEventListener('mouseup',()=>{if(dragging){dragging=false;saveState();}});
+document.addEventListener('mouseup',()=>{if(dragging){dragging=false;clampTimerToViewport(false);saveState();}});
 document.getElementById('btn-larger').addEventListener('click',()=>{applyTimerSize(state.timerSize+16);saveState();});
 document.getElementById('btn-smaller').addEventListener('click',()=>{applyTimerSize(state.timerSize-16);saveState();});
 timerWrap.addEventListener('wheel',e=>{e.preventDefault();applyTimerSize(state.timerSize-Math.sign(e.deltaY)*8);saveState();},{passive:false});
+window.addEventListener('resize',()=>{clampTimerToViewport(true);});
 
 // ─── FONT ─────────────────────────────────────────────────────────────────────
 function applyFont(f){
@@ -1526,7 +1591,7 @@ function scheduleHideUI(){
   clearTimeout(hideTimer);hideTimer=setTimeout(()=>{if(!isAnyPanelOpen())uiLayer.classList.add('hidden');},3000);
   clearTimeout(cursorHideTimer);cursorHideTimer=setTimeout(()=>cursorEl.classList.add('hidden'),3000);
 }
-function isAnyPanelOpen(){return notepadPanel.classList.contains('open')||todoPanel.classList.contains('open')||settingsPanel.classList.contains('open')||shortcutOverlay.classList.contains('open')||historyPanel.classList.contains('open')||leaderboardPanel.classList.contains('open')||themeBar.classList.contains('show');}
+function isAnyPanelOpen(){return notepadPanel.classList.contains('open')||todoPanel.classList.contains('open')||settingsPanel.classList.contains('open')||shortcutOverlay.classList.contains('open')||historyPanel.classList.contains('open')||leaderboardPanel.classList.contains('open')||themeBarWrap.classList.contains('show');}
 document.addEventListener('mousemove',e=>{
   cursorEl.style.left=e.clientX+'px';cursorEl.style.top=e.clientY+'px';cursorEl.classList.remove('hidden');
   if(!state.zenMode)showUI();scheduleHideUI();
@@ -1545,8 +1610,9 @@ function toggleZen(){
 function closeAllPanels(){
   [notepadPanel,todoPanel,settingsPanel,historyPanel,leaderboardPanel,shortcutOverlay].forEach(p=>p.classList.remove('open'));
   ['btn-note','btn-todo','btn-settings','btn-history','btn-leaderboard'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('active');});
+  timerWrap.classList.remove('with-panel');
 }
-function togglePanel(panel,btn){const was=panel.classList.contains('open');closeAllPanels();if(!was){panel.classList.add('open');btn&&btn.classList.add('active');}}
+function togglePanel(panel,btn){const was=panel.classList.contains('open');closeAllPanels();if(!was){panel.classList.add('open');btn&&btn.classList.add('active');timerWrap.classList.add('with-panel');}}
 function toggleShortcuts(){const open=shortcutOverlay.classList.contains('open');closeAllPanels();if(!open)shortcutOverlay.classList.add('open');}
 
 document.getElementById('btn-note').addEventListener('click',()=>{togglePanel(notepadPanel,document.getElementById('btn-note'));if(notepadPanel.classList.contains('open'))notepadArea.focus();});
@@ -1561,7 +1627,10 @@ document.getElementById('btn-leaderboard').addEventListener('click',()=>{toggleP
 document.getElementById('leaderboard-close').addEventListener('click',()=>{leaderboardPanel.classList.remove('open');document.getElementById('btn-leaderboard').classList.remove('active');});
 document.getElementById('shortcut-close').addEventListener('click',()=>shortcutOverlay.classList.remove('open'));
 historyRangeBtns.forEach(btn=>{btn.addEventListener('click',()=>{state.sparkRange=btn.dataset.sparkRange||'all';saveState();const workDay=buildWorkDayMap(state.history);renderSparkline(workDay);renderHeatmap(workDay);});});
-document.getElementById('btn-theme').addEventListener('click',()=>{themeBar.classList.toggle('show');document.getElementById('btn-theme').classList.toggle('active',themeBar.classList.contains('show'));if(!themeBar.classList.contains('show'))customPopup.classList.remove('show');});
+function closeThemeBar(){themeBarWrap.classList.remove('show');document.getElementById('btn-theme').classList.remove('active');themeClose.style.display='none';if(!isAnyPanelOpen())timerWrap.classList.remove('with-panel');}
+document.getElementById('btn-theme').addEventListener('click',()=>{themeBarWrap.classList.toggle('show');document.getElementById('btn-theme').classList.toggle('active',themeBarWrap.classList.contains('show'));if(themeBarWrap.classList.contains('show')){themeClose.style.display='block';timerWrap.classList.add('with-panel');}else{themeClose.style.display='none';if(!isAnyPanelOpen())timerWrap.classList.remove('with-panel');customPopup.classList.remove('show');}});
+document.getElementById('theme-close').addEventListener('click',closeThemeBar);
+document.addEventListener('click',e=>{if(themeBarWrap.classList.contains('show')&&!themeBarWrap.contains(e.target)&&!customPopup.contains(e.target)&&e.target.id!=='btn-theme'){closeThemeBar();}});
 
 // Settings: switch profile
 document.getElementById('btn-switch-profile').addEventListener('click',()=>{
@@ -1576,6 +1645,24 @@ document.getElementById('btn-switch-profile').addEventListener('click',()=>{
 document.getElementById('intent-save').addEventListener('click',()=>{sessionIntention=intentionInput.value.trim();intentionProvided=true;intentionModal.classList.remove('show');startTimer();});
 document.getElementById('intent-skip').addEventListener('click',()=>{sessionIntention='';intentionProvided=true;intentionModal.classList.remove('show');startTimer();});
 intentionInput.addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('intent-save').click();else if(e.key==='Escape')document.getElementById('intent-skip').click();});
+
+// Session notes modal
+document.getElementById('session-notes-save').addEventListener('click',()=>{
+  if(pendingSessionData){
+    const notes=sessionNotesInput.value.trim();
+    addHistoryEntry(pendingSessionData.startIso,pendingSessionData.dur,pendingSessionData.phase,pendingSessionData.intention,notes);
+    pendingSessionData=null;
+    sessionNotesModal.style.display='none';
+  }
+});
+document.getElementById('session-notes-skip').addEventListener('click',()=>{
+  if(pendingSessionData){
+    addHistoryEntry(pendingSessionData.startIso,pendingSessionData.dur,pendingSessionData.phase,pendingSessionData.intention,'');
+    pendingSessionData=null;
+    sessionNotesModal.style.display='none';
+  }
+});
+sessionNotesInput.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.ctrlKey)document.getElementById('session-notes-save').click();else if(e.key==='Escape')document.getElementById('session-notes-skip').click();});
 
 // ─── NOTEPAD ──────────────────────────────────────────────────────────────────
 let noteDebounce=null;
@@ -1646,6 +1733,7 @@ document.getElementById('btn-clear-todos').addEventListener('click',()=>{state.t
 // ─── BUTTONS ──────────────────────────────────────────────────────────────────
 document.getElementById('btn-start').addEventListener('click',startTimer);
 document.getElementById('btn-reset').addEventListener('click',resetTimer);
+document.getElementById('btn-submit').addEventListener('click',commitTimerEdit);
 document.getElementById('btn-zen').addEventListener('click',toggleZen);
 document.querySelectorAll('.mode-btn').forEach(b=>{b.addEventListener('click',()=>{setTimerMode(b.dataset.mode);saveState();});});
 
@@ -1666,7 +1754,7 @@ document.addEventListener('keydown',e=>{
     case 'f':case 'F':toggleFullscreen();break;
     case 'Escape':
       if(customPopup.classList.contains('show'))customPopup.classList.remove('show');
-      else if(themeBar.classList.contains('show')){themeBar.classList.remove('show');document.getElementById('btn-theme').classList.remove('active');}
+      else if(themeBarWrap.classList.contains('show')){closeThemeBar();}
       else closeAllPanels();break;
   }
 });
@@ -1689,8 +1777,17 @@ if(!currentUser){
   showSplash();
 }else{
   hideSplash();
-  showSubjectModal();
-  initPresence();
+  // For returning users, skip subject modal if they already have a subject stored
+  if(currentSubject) {
+    // Subject already selected, just initialize
+    hideSubjectModal();
+    initPresence();
+    updateSubjectDisplay();
+  } else {
+    // Need to pick a subject first
+    showSubjectModal();
+    initPresence();
+  }
   if(document.getElementById('settings-profile-name')){
     document.getElementById('settings-profile-name').textContent=`${currentUser}${buildIntentionLabel()?' · '+buildIntentionLabel():''}`;
   }
