@@ -1335,7 +1335,7 @@ function setTimerMode(mode){
   if(mode==='pomodoro'){state.timerPhase='work';state.timeLeft=state.settings.work*60;timerLabel.textContent='Focus';freeSub.textContent='';}
   else if(mode==='free'){state.elapsed=0;timerLabel.textContent='Free Focus';freeSub.textContent='';}
   else{state.timeLeft=state.settings.short*60;timerLabel.textContent='Break';freeSub.textContent='';}
-  updateTimerDisplay();updateSessionDots();trackPresence(false);
+  updateTimerDisplay();updateSessionDots();trackPresence(false);updateSubmitButtonState();
 }
 function updateTimerDisplay(){
   if(state.timerMode==='free'){timerDisplay.textContent=formatTime(state.elapsed);if(state.elapsed>0)freeSub.textContent=formatElapsed(state.elapsed);}
@@ -1390,8 +1390,8 @@ function commitTimerEdit() {
   }
   timerEditInput.style.display = 'none';
   timerDisplay.style.opacity = '1';
-  document.getElementById('btn-submit').style.display = 'none';
   timerEditActive = false;
+  updateSubmitButtonState();
 }
 
 timerEditInput.addEventListener('keydown', e => {
@@ -1399,11 +1399,40 @@ timerEditInput.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     timerEditInput.style.display = 'none';
     timerDisplay.style.opacity = '1';
-    document.getElementById('btn-submit').style.display = 'none';
     timerEditActive = false;
+    updateSubmitButtonState();
   }
 });
 timerEditInput.addEventListener('blur', () => { setTimeout(commitTimerEdit, 80); });
+
+function updateSubmitButtonState(){
+  const btn=document.getElementById('btn-submit');
+  if(timerEditActive){
+    btn.textContent='Submit';
+    btn.style.display='inline-block';
+    return;
+  }
+  if(state.timerMode==='free'&&!state.running&&state.elapsed>0){
+    btn.textContent='Submit';
+    btn.style.display='inline-block';
+    return;
+  }
+  btn.style.display='none';
+}
+
+function submitFreeSession(){
+  if(state.timerMode!=='free'||state.running||state.elapsed<=0)return;
+  const startIso=(freeSessionStart instanceof Date)
+    ? freeSessionStart.toISOString()
+    : new Date(Date.now()-state.elapsed*1000).toISOString();
+  addHistoryEntry(startIso,state.elapsed,'work',buildIntentionLabel());
+  state.elapsed=0;
+  freeSessionStart=null;
+  updateTimerDisplay();
+  updateSubmitButtonState();
+  saveState();
+  notify('Session submitted');
+}
 
 function startTimer(){
   if(state.running){pauseTimer();return;}
@@ -1418,6 +1447,7 @@ function startTimer(){
   }
   state.running=true;
   document.getElementById('btn-start').textContent='Pause';document.getElementById('btn-start').classList.remove('active-btn');
+  updateSubmitButtonState();
   if(bellCtx)bellCtx.resume();
   trackPresence(true);
   timerInterval=setInterval(()=>{
@@ -1432,6 +1462,7 @@ function startTimer(){
 function pauseTimer(){
   state.running=false;clearInterval(timerInterval);
   document.getElementById('btn-start').textContent='Start';document.getElementById('btn-start').classList.add('active-btn');
+  updateSubmitButtonState();
   trackPresence(false);
 }
 function pulseTimerEnd(){timerWrap.classList.add('session-pulse');setTimeout(()=>timerWrap.classList.remove('session-pulse'),900);}
@@ -1445,7 +1476,7 @@ function resetTimer(){
   if(state.timerMode==='pomodoro'){state.timeLeft=state.settings.work*60;state.timerPhase='work';timerLabel.textContent='Focus';}
   else if(state.timerMode==='free'){state.elapsed=0;freeSub.textContent='';}
   else{state.timeLeft=state.settings.short*60;}
-  updateTimerDisplay();saveState();
+  updateTimerDisplay();updateSubmitButtonState();saveState();
 }
 function onTimerEnd(){
   pauseTimer();playBell();pulseTimerEnd();
@@ -1733,7 +1764,7 @@ document.getElementById('btn-clear-todos').addEventListener('click',()=>{state.t
 // ─── BUTTONS ──────────────────────────────────────────────────────────────────
 document.getElementById('btn-start').addEventListener('click',startTimer);
 document.getElementById('btn-reset').addEventListener('click',resetTimer);
-document.getElementById('btn-submit').addEventListener('click',commitTimerEdit);
+document.getElementById('btn-submit').addEventListener('click',()=>{if(timerEditActive)commitTimerEdit();else submitFreeSession();});
 document.getElementById('btn-zen').addEventListener('click',toggleZen);
 document.querySelectorAll('.mode-btn').forEach(b=>{b.addEventListener('click',()=>{setTimerMode(b.dataset.mode);saveState();});});
 
@@ -1770,6 +1801,7 @@ setTimeout(()=>{audioHint.classList.add('show');setTimeout(()=>audioHint.classLi
 document.querySelectorAll('.music-btn').forEach((b,i)=>b.classList.toggle('playing',state.musicMix[i]?.on));
 applyAllChannelVolumes();renderStats();renderGoal();renderDeadline();renderHistory();
 applyVignette(state.vignette);applyBlur(state.blur);applyDarken(state.darken);applyTimerOpacity(state.timerOpacity);
+updateSubmitButtonState();
 timerWrap.style.transform='translate(-50%,-50%)';
 
 // ─── PROFILE CHECK → SHOW SPLASH OR SUBJECT MODAL ────────────────────────────
