@@ -163,9 +163,22 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
 .icon-btn{background:var(--glass);border:1px solid var(--glass-border);color:var(--text-dim);width:36px;height:36px;border-radius:50%;cursor:pointer;backdrop-filter:blur(12px);transition:all 0.2s;display:flex;align-items:center;justify-content:center;font-size:14px;position:relative}
 .icon-btn:hover{color:var(--text);border-color:rgba(255,255,255,0.3);background:rgba(255,255,255,0.14)}
 .icon-btn.active{color:var(--accent);border-color:rgba(255,255,255,0.45);background:rgba(255,255,255,0.16)}
+#btn-calendar{display:none}
 #btn-leaderboard{width:46px;height:46px;border-color:rgba(255,200,100,0.6);background:rgba(255,200,100,0.1);font-size:18px}
 #btn-leaderboard:hover{border-color:rgba(255,200,100,0.9);background:rgba(255,200,100,0.18);color:rgba(255,200,100,1)}
 #btn-leaderboard.active{color:rgba(255,200,100,1);border-color:rgba(255,200,100,0.9);background:rgba(255,200,100,0.25)}
+
+/* ── CALENDAR PRESETS ───────────────────────────────────────────────────── */
+#calendar-modal{position:fixed;inset:0;z-index:75;background:rgba(0,0,0,0.72);backdrop-filter:blur(14px);display:none;align-items:center;justify-content:center;padding:16px}
+#calendar-modal.show{display:flex}
+.calendar-box{width:430px;max-width:92vw;background:rgba(20,20,20,0.92);border:1px solid rgba(255,255,255,0.14);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:14px;box-shadow:0 20px 50px rgba(0,0,0,0.35)}
+.calendar-title{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--text-faint)}
+.calendar-subtitle{font-size:13px;font-weight:300;color:var(--text-dim);line-height:1.4}
+.calendar-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.calendar-day-btn{background:var(--glass);border:1px solid var(--glass-border);color:var(--text);font-family:var(--ui-font);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;padding:12px 10px;border-radius:10px;cursor:pointer;transition:all 0.2s}
+.calendar-day-btn:hover{background:rgba(255,255,255,0.18);border-color:rgba(255,255,255,0.34)}
+.calendar-close{align-self:flex-end;background:none;border:1px solid rgba(255,255,255,0.2);color:var(--text-dim);font-family:var(--ui-font);font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:7px 10px;border-radius:8px;cursor:pointer;transition:all 0.2s}
+.calendar-close:hover{color:var(--text);border-color:rgba(255,255,255,0.35)}
 
 /* ── PANELS ──────────────────────────────────────────────────────────────── */
 .panel{position:fixed;top:0;right:0;height:100%;width:320px;background:rgba(12,12,12,0.72);backdrop-filter:blur(24px);border-left:1px solid rgba(255,255,255,0.08);z-index:40;display:flex;flex-direction:column;transform:translateX(100%);transition:transform 0.4s cubic-bezier(0.16,1,0.3,1);padding:28px 24px}
@@ -450,6 +463,7 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
       <button class="icon-btn" id="btn-todo" title="Tasks (T)">☰</button>
       <button class="icon-btn" id="btn-note" title="Notes (N)">✎</button>
       <button class="icon-btn" id="btn-history" title="History (H)">🕒</button>
+      <button class="icon-btn" id="btn-calendar" title="Calendar Presets (C)">◷</button>
       <button class="icon-btn" id="btn-settings" title="Settings (S)">⊙</button>
     </div>
     <div id="zen-controls">
@@ -579,10 +593,28 @@ body{font-family:var(--ui-font);color:var(--text);cursor:none;user-select:none}
     <div><strong style="color:var(--text)">H</strong> — History</div>
     <div><strong style="color:var(--text)">L</strong> — Leaderboard</div>
     <div><strong style="color:var(--text)">S</strong> — Settings</div>
+    <div><strong style="color:var(--text)">C</strong> — Calendar preset (Calloway)</div>
     <div><strong style="color:var(--text)">M</strong> — Cycle music</div>
     <div><strong style="color:var(--text)">I</strong> — Shortcuts</div>
     <div><strong style="color:var(--text)">F</strong> — Fullscreen</div>
     <div><strong style="color:var(--text)">Esc</strong> — Close panels</div>
+  </div>
+</div>
+
+<div id="calendar-modal">
+  <div class="calendar-box">
+    <div class="calendar-title">Calloway Calendar Presets</div>
+    <div class="calendar-subtitle">Choose a day to launch your automatic study flow.</div>
+    <div class="calendar-grid">
+      <button class="calendar-day-btn" data-day="monday">Monday</button>
+      <button class="calendar-day-btn" data-day="tuesday">Tuesday</button>
+      <button class="calendar-day-btn" data-day="wednesday">Wednesday</button>
+      <button class="calendar-day-btn" data-day="thursday">Thursday</button>
+      <button class="calendar-day-btn" data-day="friday">Friday</button>
+      <button class="calendar-day-btn" data-day="saturday">Saturday</button>
+      <button class="calendar-day-btn" data-day="sunday">Sunday</button>
+    </div>
+    <button class="calendar-close" id="calendar-close-btn">Close</button>
   </div>
 </div>
 
@@ -740,6 +772,7 @@ let state = {
   stats:{date:'',focusSeconds:0,sessions:0,streak:0},
   history:[],focusGoal:360,deadline:{label:'',iso:''},sparkRange:'all',
   vignette:55,blur:0,darken:0,timerOpacity:100,showClock:false,zenMode:false,
+  customSchedule:{enabled:false,day:'',steps:[],index:0},
   settings:{work:25,short:5,long:15,autoStart:true,sound:true,dots:true},
   todos:[],notepad:'',
 };
@@ -799,6 +832,162 @@ const clockDisplay    = document.getElementById('clock-display');
 const subjectDisplay  = document.getElementById('current-subject-display');
 const presenceBar     = document.getElementById('presence-bar');
 const lbList          = document.getElementById('lb-list');
+const calendarBtn     = document.getElementById('btn-calendar');
+const calendarModal   = document.getElementById('calendar-modal');
+
+// ─── CALLOWAY PRESETS ───────────────────────────────────────────────────────
+const CALLOWAY_WEEKDAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+
+function isCallowayProfile() {
+  return (currentUser || '').trim().toLowerCase() === 'calloway';
+}
+
+function updateCallowayControls() {
+  if (!calendarBtn) return;
+  calendarBtn.style.display = isCallowayProfile() ? 'flex' : 'none';
+  if (!isCallowayProfile()) calendarModal.classList.remove('show');
+}
+
+function titleCaseDay(day) {
+  const lower = String(day || '').toLowerCase();
+  return lower ? lower.charAt(0).toUpperCase() + lower.slice(1) : '';
+}
+
+function buildBaseCallowayDay() {
+  return [
+    { phase:'work',  label:'Psychology',    minutes:30 },
+    { phase:'break', label:'Break',         minutes:15 },
+    { phase:'work',  label:'Human Biology', minutes:30 },
+    { phase:'break', label:'Break',         minutes:15 },
+    { phase:'work',  label:'Health Studies',minutes:30 },
+    { phase:'break', label:'Workout',       minutes:30 },
+    { phase:'work',  label:'Literature',    minutes:30 },
+    { phase:'break', label:'Break',         minutes:15 },
+    { phase:'work',  label:'English',       minutes:30 },
+    { phase:'break', label:'Break',         minutes:15 },
+    { phase:'work',  label:'Applications',  minutes:30 },
+    { phase:'break', label:'Flashcards',    minutes:15 },
+  ];
+}
+
+function buildTuesdayCallowayDay() {
+  return [
+    { phase:'work',  label:'Psychology',    minutes:20 },
+    { phase:'break', label:'Break',         minutes:5 },
+    { phase:'work',  label:'Human Biology', minutes:20 },
+    { phase:'break', label:'Break',         minutes:5 },
+    { phase:'work',  label:'Health Studies',minutes:20 },
+    { phase:'break', label:'Workout',       minutes:15 },
+    { phase:'work',  label:'Literature',    minutes:20 },
+    { phase:'break', label:'Break',         minutes:5 },
+    { phase:'work',  label:'English',       minutes:20 },
+    { phase:'break', label:'Break',         minutes:5 },
+    { phase:'work',  label:'Applications',  minutes:20 },
+    { phase:'break', label:'Flashcards',    minutes:15 },
+  ];
+}
+
+function buildCallowayPreset(day) {
+  const d = String(day || '').toLowerCase();
+  if (!d) return [];
+
+  if (d === 'tuesday') return buildTuesdayCallowayDay();
+
+  if (d === 'friday') {
+    return [
+      ...buildBaseCallowayDay(),
+      { phase:'break', label:'Flashcards', minutes:15 },
+    ];
+  }
+
+  if (d === 'saturday' || d === 'sunday') {
+    const base = buildBaseCallowayDay();
+    return [...base, ...base];
+  }
+
+  // Monday, Wednesday, Thursday use the base 30/15 schedule.
+  return buildBaseCallowayDay();
+}
+
+function isPresetRunning() {
+  return !!(state.customSchedule && state.customSchedule.enabled);
+}
+
+function disablePresetFlow() {
+  state.customSchedule = { enabled:false, day:'', steps:[], index:0 };
+}
+
+function applyPresetStep(index, autoStart = true) {
+  if (!isPresetRunning()) return;
+  const sched = state.customSchedule;
+  const step = sched.steps[index];
+  if (!step) return;
+
+  state.timerMode = 'pomodoro';
+  state.timerPhase = step.phase === 'work' ? 'work' : 'short';
+  state.timeLeft = Math.max(1, Math.round(step.minutes * 60));
+
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === 'pomodoro'));
+  timerLabel.textContent = step.label;
+  freeSub.textContent = `Preset · ${titleCaseDay(sched.day)} (${index + 1}/${sched.steps.length})`;
+  updateTimerDisplay();
+
+  sessionIntention = step.label;
+  intentionProvided = true;
+  sessionStart = new Date();
+  sessionPhase = step.phase;
+
+  if (autoStart) startTimer();
+}
+
+function completePresetFlow() {
+  disablePresetFlow();
+  pauseTimer();
+  state.timerPhase = 'work';
+  state.timeLeft = state.settings.work * 60;
+  timerLabel.textContent = 'Focus';
+  freeSub.textContent = '';
+  updateTimerDisplay();
+  notify('Preset complete');
+}
+
+function advancePresetFlow() {
+  if (!isPresetRunning()) return;
+  state.customSchedule.index += 1;
+  if (state.customSchedule.index >= state.customSchedule.steps.length) {
+    completePresetFlow();
+    return;
+  }
+  applyPresetStep(state.customSchedule.index, true);
+}
+
+function startCallowayPreset(day) {
+  if (!isCallowayProfile()) return;
+  const steps = buildCallowayPreset(day);
+  if (!steps.length) return;
+
+  pauseTimer();
+  setTimerMode('pomodoro');
+  state.cycles = 0;
+  disablePresetFlow();
+
+  state.customSchedule = {
+    enabled:true,
+    day:String(day || '').toLowerCase(),
+    steps,
+    index:0,
+  };
+
+  applyPresetStep(0, true);
+  updateSessionDots();
+  saveState();
+  notify(`${titleCaseDay(day)} preset started`);
+}
+
+function toggleCalendarModal() {
+  if (!isCallowayProfile()) return;
+  calendarModal.classList.toggle('show');
+}
 
 // ─── SPLASH / PROFILE FLOW ────────────────────────────────────────────────────
 const splashEl  = document.getElementById('splash');
@@ -821,6 +1010,7 @@ document.querySelectorAll('.splash-card').forEach(btn => {
     if (!isOther) {
       currentUser = selectedSplashName;
       localStorage.setItem('focus_user', currentUser);
+      updateCallowayControls();
       hideSplash();
       showSubjectModal();
     } else {
@@ -841,6 +1031,7 @@ document.getElementById('splash-confirm').addEventListener('click', () => {
   if (!v) return;
   currentUser = v;
   localStorage.setItem('focus_user', currentUser);
+  updateCallowayControls();
   hideSplash();
   showSubjectModal();
 });
@@ -1037,6 +1228,8 @@ document.querySelectorAll('.lb-tab').forEach(btn => {
 // ─── PERSIST ──────────────────────────────────────────────────────────────────
 function loadState() {
   try { const s=localStorage.getItem('focus_state_v3'); if(s) Object.assign(state,JSON.parse(s)); state.running=false; } catch(e){}
+  if(!state.customSchedule || typeof state.customSchedule!=='object') disablePresetFlow();
+  else disablePresetFlow();
   state.timerWeight=state.timerWeight||(FONTS[state.font]?.weight||200);
   state.timerColor=state.timerColor||'#ffffff';
   if(!Array.isArray(state.musicMix)||state.musicMix.length!==MUSIC.length){
@@ -1324,6 +1517,7 @@ function formatTime(secs){const m=Math.floor(secs/60),s=secs%60;return String(m)
 function formatElapsed(secs){const h=Math.floor(secs/3600),m=Math.floor((secs%3600)/60),s=secs%60;if(h>0)return`${h}h ${m}m`;if(m>0)return`${m}m ${s}s`;return`${s}s`;}
 
 function setTimerMode(mode){
+  disablePresetFlow();
   // Log free session if switching away from running free timer
   if(state.timerMode==='free'&&state.running&&state.elapsed>60&&freeSessionStart){
     addHistoryEntry(freeSessionStart.toISOString(),state.elapsed,'work',buildIntentionLabel());
@@ -1344,7 +1538,7 @@ function updateTimerDisplay(){
   document.title=timerDisplay.textContent+' · Focus';
 }
 function updateSessionDots(){
-  if(!state.settings.dots||state.timerMode!=='pomodoro'){sessionDots.style.opacity='0';return;}
+  if(!state.settings.dots||state.timerMode!=='pomodoro'||isPresetRunning()){sessionDots.style.opacity='0';return;}
   sessionDots.style.opacity='1';sessionDots.innerHTML='';
   for(let i=0;i<4;i++){const d=document.createElement('div');d.className='dot'+(i<state.cycles?' done':'');sessionDots.appendChild(d);}
 }
@@ -1467,6 +1661,7 @@ function pauseTimer(){
 }
 function pulseTimerEnd(){timerWrap.classList.add('session-pulse');setTimeout(()=>timerWrap.classList.remove('session-pulse'),900);}
 function resetTimer(){
+  disablePresetFlow();
   // Log free session if meaningful
   if(state.timerMode==='free'&&state.elapsed>60&&freeSessionStart){
     addHistoryEntry(freeSessionStart.toISOString(),state.elapsed,'work',buildIntentionLabel());
@@ -1479,21 +1674,28 @@ function resetTimer(){
   updateTimerDisplay();updateSubmitButtonState();saveState();
 }
 function onTimerEnd(){
+  const presetActive = isPresetRunning();
+  const finishedIntention = sessionIntention || buildIntentionLabel();
   pauseTimer();playBell();pulseTimerEnd();
   if(sessionStart){
     const dur=Math.max(1,Math.round((Date.now()-sessionStart.getTime())/1000));
     const phase=sessionPhase||state.timerPhase;
     // For work sessions, show notes modal instead of directly adding entry
-    if(phase==='work'&&state.timerMode==='pomodoro'){
-      pendingSessionData={startIso:sessionStart.toISOString(),dur,phase,intention:buildIntentionLabel()};
+    if(phase==='work'&&state.timerMode==='pomodoro'&&!presetActive){
+      pendingSessionData={startIso:sessionStart.toISOString(),dur,phase,intention:finishedIntention};
       sessionNotesInput.value='';
       sessionNotesModal.style.display='flex';
     }else{
       // For non-work sessions, add directly
-      addHistoryEntry(sessionStart.toISOString(),dur,phase,buildIntentionLabel());
+      addHistoryEntry(sessionStart.toISOString(),dur,phase,finishedIntention);
     }
   }
   sessionStart=null;sessionPhase=null;intentionProvided=false;freeSessionStart=null;
+  if(presetActive){
+    advancePresetFlow();
+    saveState();
+    return;
+  }
   if(state.timerMode==='pomodoro'){
     if(state.timerPhase==='work'){
       state.cycles=(state.cycles+1)%4;updateSessionDots();state.stats.sessions+=1;renderStats();renderGoal();
@@ -1657,6 +1859,17 @@ document.getElementById('history-close').addEventListener('click',()=>{historyPa
 document.getElementById('btn-leaderboard').addEventListener('click',()=>{togglePanel(leaderboardPanel,document.getElementById('btn-leaderboard'));if(leaderboardPanel.classList.contains('open'))loadLeaderboard();});
 document.getElementById('leaderboard-close').addEventListener('click',()=>{leaderboardPanel.classList.remove('open');document.getElementById('btn-leaderboard').classList.remove('active');});
 document.getElementById('shortcut-close').addEventListener('click',()=>shortcutOverlay.classList.remove('open'));
+calendarBtn.addEventListener('click',toggleCalendarModal);
+document.getElementById('calendar-close-btn').addEventListener('click',()=>calendarModal.classList.remove('show'));
+document.querySelectorAll('.calendar-day-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const day=btn.dataset.day;
+    if(!day)return;
+    calendarModal.classList.remove('show');
+    startCallowayPreset(day);
+  });
+});
+calendarModal.addEventListener('click',e=>{if(e.target===calendarModal)calendarModal.classList.remove('show');});
 historyRangeBtns.forEach(btn=>{btn.addEventListener('click',()=>{state.sparkRange=btn.dataset.sparkRange||'all';saveState();const workDay=buildWorkDayMap(state.history);renderSparkline(workDay);renderHeatmap(workDay);});});
 function closeThemeBar(){themeBarWrap.classList.remove('show');document.getElementById('btn-theme').classList.remove('active');themeClose.style.display='none';if(!isAnyPanelOpen())timerWrap.classList.remove('with-panel');}
 document.getElementById('btn-theme').addEventListener('click',()=>{themeBarWrap.classList.toggle('show');document.getElementById('btn-theme').classList.toggle('active',themeBarWrap.classList.contains('show'));if(themeBarWrap.classList.contains('show')){themeClose.style.display='block';timerWrap.classList.add('with-panel');}else{themeClose.style.display='none';if(!isAnyPanelOpen())timerWrap.classList.remove('with-panel');customPopup.classList.remove('show');}});
@@ -1780,11 +1993,18 @@ document.addEventListener('keydown',e=>{
     case 'm':case 'M':cycleMusicChannel();break;
     case 'h':case 'H':renderHistory();togglePanel(historyPanel,document.getElementById('btn-history'));break;
     case 'l':case 'L':togglePanel(leaderboardPanel,document.getElementById('btn-leaderboard'));if(leaderboardPanel.classList.contains('open'))loadLeaderboard();break;
+    case 'c':case 'C':
+      if(isCallowayProfile()){
+        e.preventDefault();
+        toggleCalendarModal();
+      }
+      break;
     case 's':case 'S':togglePanel(settingsPanel,document.getElementById('btn-settings'));break;
     case 'i':case 'I':toggleShortcuts();break;
     case 'f':case 'F':toggleFullscreen();break;
     case 'Escape':
-      if(customPopup.classList.contains('show'))customPopup.classList.remove('show');
+      if(calendarModal.classList.contains('show'))calendarModal.classList.remove('show');
+      else if(customPopup.classList.contains('show'))customPopup.classList.remove('show');
       else if(themeBarWrap.classList.contains('show')){closeThemeBar();}
       else closeAllPanels();break;
   }
@@ -1793,6 +2013,7 @@ document.addEventListener('keydown',e=>{
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 loadState();
 buildThemeBar();
+updateCallowayControls();
 startClockLoop();
 scheduleHideUI();
 if(deadlineInterval)clearInterval(deadlineInterval);
@@ -1824,6 +2045,7 @@ if(!currentUser){
     document.getElementById('settings-profile-name').textContent=`${currentUser}${buildIntentionLabel()?' · '+buildIntentionLabel():''}`;
   }
 }
+updateCallowayControls();
 
 // Cleanup on close
 window.addEventListener('beforeunload',()=>{if(presenceChannel)presenceChannel.unsubscribe();});
