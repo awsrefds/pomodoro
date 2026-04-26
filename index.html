@@ -1492,6 +1492,7 @@ document.addEventListener('click',e=>{if(!customPopup.contains(e.target)&&e.targ
 
 // ─── TIMER ────────────────────────────────────────────────────────────────────
 let timerInterval=null,bellCtx=null,deadlineInterval=null,clockInterval=null;
+let timerAnchorMs=null,timerBaseSeconds=0,timerTargetMs=null;
 let sessionStart=null,sessionPhase=null,sessionIntention='',intentionProvided=false;
 let freeSessionStart=null;
 let fullscreenLocked=false;
@@ -1516,13 +1517,64 @@ function playBell(){
 function formatTime(secs){const m=Math.floor(secs/60),s=secs%60;return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');}
 function formatElapsed(secs){const h=Math.floor(secs/3600),m=Math.floor((secs%3600)/60),s=secs%60;if(h>0)return`${h}h ${m}m`;if(m>0)return`${m}m ${s}s`;return`${s}s`;}
 
+function clearTimerRuntime(){
+  timerAnchorMs=null;
+  timerBaseSeconds=0;
+  timerTargetMs=null;
+}
+function seedTimerRuntime(now=Date.now()){
+  timerAnchorMs=now;
+  if(state.timerMode==='free'){
+    timerBaseSeconds=state.elapsed;
+    timerTargetMs=null;
+  }else{
+    timerBaseSeconds=state.timeLeft;
+    timerTargetMs=now+state.timeLeft*1000;
+  }
+}
+function syncTimerToNow(now=Date.now()){
+  if(!state.running||timerAnchorMs===null)return{changed:false,ended:false};
+  if(state.timerMode==='free'){
+    const nextElapsed=Math.max(0,timerBaseSeconds+Math.floor((now-timerAnchorMs)/1000));
+    if(nextElapsed!==state.elapsed){state.elapsed=nextElapsed;return{changed:true,ended:false};}
+    return{changed:false,ended:false};
+  }
+
+  const prevLeft=state.timeLeft;
+  const remainingMs=(timerTargetMs??now)-now;
+  const nextLeft=Math.max(0,Math.ceil(remainingMs/1000));
+  let changed=false;
+  if(nextLeft!==prevLeft){
+    state.timeLeft=nextLeft;
+    changed=true;
+    if(state.timerPhase==='work'&&nextLeft<prevLeft){
+      state.stats.focusSeconds+=prevLeft-nextLeft;
+      renderStats();
+      renderGoal();
+    }
+  }
+  if(remainingMs<=0)return{changed,ended:true};
+  return{changed,ended:false};
+}
+function timerTick(){
+  const {changed,ended}=syncTimerToNow(Date.now());
+  if(changed){updateTimerDisplay();saveState();}
+  if(ended){
+    state.timeLeft=0;
+    updateTimerDisplay();
+    onTimerEnd();
+  }
+}
+
 function setTimerMode(mode){
   disablePresetFlow();
+  if(state.running)syncTimerToNow(Date.now());
   // Log free session if switching away from running free timer
   if(state.timerMode==='free'&&state.running&&state.elapsed>60&&freeSessionStart){
     addHistoryEntry(freeSessionStart.toISOString(),state.elapsed,'work',buildIntentionLabel());
   }
   state.timerMode=mode;state.running=false;clearInterval(timerInterval);
+  clearTimerRuntime();
   sessionStart=null;sessionPhase=null;sessionIntention='';intentionProvided=false;freeSessionStart=null;
   document.querySelectorAll('.mode-btn').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
   document.getElementById('btn-start').textContent='Start';document.getElementById('btn-start').classList.add('active-btn');
@@ -1644,17 +1696,18 @@ function startTimer(){
   updateSubmitButtonState();
   if(bellCtx)bellCtx.resume();
   trackPresence(true);
-  timerInterval=setInterval(()=>{
-    if(state.timerMode==='free'){state.elapsed++;updateTimerDisplay();}
-    else{
-      state.timeLeft--;updateTimerDisplay();if(state.timeLeft<=0)onTimerEnd();
-      if(state.timerPhase==='work'){state.stats.focusSeconds++;renderStats();renderGoal();}
-    }
-    saveState();
-  },1000);
+  seedTimerRuntime(Date.now());
+  clearInterval(timerInterval);
+  timerInterval=setInterval(timerTick,200);
+  timerTick();
 }
 function pauseTimer(){
+  syncTimerToNow(Date.now());
   state.running=false;clearInterval(timerInterval);
+  timerInterval=null;
+  clearTimerRuntime();
+  updateTimerDisplay();
+  saveState();
   document.getElementById('btn-start').textContent='Start';document.getElementById('btn-start').classList.add('active-btn');
   updateSubmitButtonState();
   trackPresence(false);
@@ -1662,6 +1715,7 @@ function pauseTimer(){
 function pulseTimerEnd(){timerWrap.classList.add('session-pulse');setTimeout(()=>timerWrap.classList.remove('session-pulse'),900);}
 function resetTimer(){
   disablePresetFlow();
+  if(state.running)syncTimerToNow(Date.now());
   // Log free session if meaningful
   if(state.timerMode==='free'&&state.elapsed>60&&freeSessionStart){
     addHistoryEntry(freeSessionStart.toISOString(),state.elapsed,'work',buildIntentionLabel());
